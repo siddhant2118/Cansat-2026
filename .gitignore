@@ -1,0 +1,9 @@
+# Ignore macOS system junk
+.DS_Store
+
+# Ignore large binary installers
+*.dmg
+*.iso
+*.exe
+*.zip
+*.tar.gz
