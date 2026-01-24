@@ -1,0 +1,41 @@
+# PlatformIO
+.pio/
+.pioenvs/
+.piolibdeps/
+
+# Build artifacts
+.build/
+*.elf
+*.bin
+*.hex
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Thumbnails
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Python
+__pycache__/
+*.py[cod]
+.env
+venv/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
