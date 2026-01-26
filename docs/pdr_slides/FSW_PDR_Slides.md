@@ -147,8 +147,9 @@
   - **At 80% peak altitude:** PROBE_RELEASE (para-glider deploys)
   - **At 2m AGL:** PAYLOAD_RELEASE (egg released)
   - LANDED
-- **Para-glider guidance at 20 Hz:**
-  - Calculate bearing to target
+- **Para-glider guidance at 20 Hz (PID control):**
+  - Calculate bearing to target, heading error
+  - PID controller: P (current error), I (wind drift), D (damping)
   - Differential servo control for steering
 - Recover operations upon power reset via EEPROM:
   - Packet count, flight state, mode, calibration data, CMD_ECHO
