@@ -64,12 +64,12 @@ bool MS5611Sensor::readCalibration() {
             return false;
         }
         
-        _C[i] = (Wire.read() << 8) | Wire.read();
+        _calCoeffs[i] = (Wire.read() << 8) | Wire.read();
     }
     
     // Validate calibration (basic check - values shouldn't be 0 or 0xFFFF)
     for (uint8_t i = 0; i < 6; i++) {
-        if (_C[i] == 0 || _C[i] == 0xFFFF) {
+        if (_calCoeffs[i] == 0 || _calCoeffs[i] == 0xFFFF) {
             return false;
         }
     }
@@ -138,16 +138,16 @@ uint32_t MS5611Sensor::readADC() {
 void MS5611Sensor::calculate() {
     // Algorithm from MS5611 datasheet
     // dT = D2 - C5 * 2^8
-    int32_t dT = (int32_t)_D2 - ((int32_t)_C[4] << 8);
+    int32_t dT = (int32_t)_D2 - ((int32_t)_calCoeffs[4] << 8);
     
     // TEMP = 2000 + dT * C6 / 2^23
-    int32_t TEMP = 2000 + (((int64_t)dT * _C[5]) >> 23);
+    int32_t TEMP = 2000 + (((int64_t)dT * _calCoeffs[5]) >> 23);
     
     // OFF = C2 * 2^16 + (C4 * dT) / 2^7
-    int64_t OFF = ((int64_t)_C[1] << 16) + (((int64_t)_C[3] * dT) >> 7);
+    int64_t OFF = ((int64_t)_calCoeffs[1] << 16) + (((int64_t)_calCoeffs[3] * dT) >> 7);
     
     // SENS = C1 * 2^15 + (C3 * dT) / 2^8
-    int64_t SENS = ((int64_t)_C[0] << 15) + (((int64_t)_C[2] * dT) >> 8);
+    int64_t SENS = ((int64_t)_calCoeffs[0] << 15) + (((int64_t)_calCoeffs[2] * dT) >> 8);
     
     // Second order temperature compensation
     int32_t T2 = 0;

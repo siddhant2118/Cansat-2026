@@ -151,10 +151,13 @@
 #define TARGET_LATITUDE     35.0f   // degrees N (placeholder)
 #define TARGET_LONGITUDE    -106.0f // degrees W (placeholder)
 
-// Steering gains
-#define GUIDANCE_KP         1.0f    // Proportional gain
+// Steering gains (PID)
+#define GUIDANCE_KP         0.8f    // Proportional gain
+#define GUIDANCE_KI         0.05f   // Integral gain (wind drift correction)
+#define GUIDANCE_KD         0.3f    // Derivative gain (damping)
+#define GUIDANCE_INTEGRAL_MAX 30.0f // Anti-windup limit (degrees*seconds)
 #define GUIDANCE_MAX_TURN   30.0f   // Maximum steering angle (degrees)
-#define GUIDANCE_RATE_LIMIT 10.0f   // Rate limit (deg/s)
+#define GUIDANCE_RATE_LIMIT 15.0f   // Rate limit (deg/s)
 
 // ============================================================================
 // DEBUG FLAGS

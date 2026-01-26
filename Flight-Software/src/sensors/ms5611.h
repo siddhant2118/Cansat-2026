@@ -37,7 +37,7 @@ private:
     PressureData _data;
     
     // Calibration coefficients (from PROM)
-    uint16_t _C[6];
+    uint16_t _calCoeffs[6];
     
     // Raw readings
     uint32_t _D1;  // Pressure
