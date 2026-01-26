@@ -1,9 +1,42 @@
-# Ignore macOS system junk
-.DS_Store
+# Ignore personal/local files
+.local/
 
-# Ignore large binary installers
+# macOS
+.DS_Store
+._*
+
+# PlatformIO
+.pio/
+.pioenvs/
+.piolibdeps/
+
+# Build artifacts
+*.elf
+*.bin
+*.hex
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Python
+__pycache__/
+*.py[cod]
+.env
+venv/
+node_modules/
+
+# Logs
+*.log
+
+# Temporary
+*.tmp
+*.temp
+
+# Large binaries (installers, etc)
 *.dmg
-*.iso
 *.exe
-*.zip
-*.tar.gz
+*.msi
