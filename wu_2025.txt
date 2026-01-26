@@ -1,0 +1,500 @@
+Journal of Physics:
+Conference Series
+
+You may also like
+
+PAPER • OPEN ACCESS
+
+Research on indoor multi-sensor UAV altitude
+fusion and fault-tolerant simulation based on
+adaptive Kalman filter
+To cite this article: Qiqi Wu et al 2025 J. Phys.: Conf. Ser. 3133 012015
+
+- Indoor altitude estimation assisted by
+inertial compensation and online floor
+modeling
+Ming Xia, Jiale Wang, Chuang Shi et al.
+- Mechanism of residual stress on stress
+corrosion in the heat-affected zone of
+welded joints of DH36 steel
+Huiqiu Yuan, Bin Han, Bin Yang et al.
+- An advanced rangefinder equipped with a
+new image sensor with the ability to detect
+the incident angle of a light stripe
+M Baba, D Narita and K Ohtani
+
+View the article online for updates and enhancements.
+
+This content was downloaded from IP address 172.226.214.43 on 26/01/2026 at 20:02
+
+RAMT-2025
+
+IOP Publishing
+
+Journal of Physics: Conference Series 3133 (2025) 012015
+
+doi:10.1088/1742-6596/3133/1/012015
+
+Research on indoor multi-sensor UAV altitude fusion and
+fault-tolerant simulation based on adaptive Kalman filter
+Qiqi Wu1, Haisheng Duan1, Zhengrong Xiang2,3*
+1
+
+School of Automation, Guangxi University of Science and Technology, Liuzhou 545006,
+China
+2
+School of Physics and Information Engineering, Guangxi Science & Technology Normal
+University, Laibin 546199, China
+3
+School of Mechanical Engineering and Electronic Information, China University of
+Geosciences, Wuhan 430074, China
+*
+
+E-mail: zhengrongxiang0913@163.com
+
+Abstract. Unmanned aerial vehicles (UAVs) are increasingly used in civilian and
+military applications, where accurate altitude estimation is critical for safe and reliable
+flight. In GPS-denied indoor environments, single sensors such as barometers or laser
+rangefinders often suffer from noise, drift, and sudden measurement faults, limiting their
+reliability. This paper proposes a multi-sensor altitude fusion algorithm based on an
+adaptive Kalman filter that integrates data from a barometer, laser rangefinder, and
+accelerometer. A barometer bias term is included in the state-space model for continuous
+calibration, while a residual-driven adaptive mechanism dynamically tunes process and
+measurement noise to suppress laser anomalies. Simulation results show that the
+proposed method improves altitude estimation accuracy and maintains robustness
+during sensor disturbances, making it suitable for UAV indoor navigation and control
+tasks.
+1. Introduction
+In recent years, unmanned aerial vehicles (UAVs) have been widely applied in fields such as agriculture,
+logistics, aerial photography, environmental monitoring, and scientific research. Accurate altitude
+measurement is essential for safe flight, as it directly affects navigation, positioning, and control
+performance. For outdoor UAVs, common sensors include the Global Navigation Satellite System
+(GNSS, e.g., GPS or BDS), inertial measurement units (IMU), and barometers. While GNSS offers high
+accuracy at low cost, it becomes unavailable in indoor environments. Barometers, though simple, suffer
+from noise and long-term drift, whereas IMUs provide precise short-term estimates but accumulate
+errors over time. Indoor UAV operation is particularly challenging due to the absence of GNSS signals,
+limited space, and complex interference, which make single-sensor solutions unreliable. To overcome
+these limitations, multi-sensor fusion has been increasingly adopted to combine complementary
+measurements from different sensors, improving altitude estimation accuracy, robustness, and reliability
+[3,4]
+. However, traditional Kalman filter–based fusion methods [5] often assume stable measurement
+conditions and lack adaptive fault-tolerant mechanisms.
+Pritzl et al. proposed an adaptive multi-sensor fusion approach to address the challenges of UAV
+altitude estimation in complex indoor environments, including insufficient geometric features, uneven
+ground, and sensor measurement delays [1]. Their method fuses measurements from a 1D laser
+rangefinder, a 3D LiDAR SLAM algorithm, a barometer, an IMU, and the UAV’s position controller.
+Simulation results demonstrated that the approach maintains high robustness and accuracy even under
+degraded or delayed measurements, supporting stable UAV flight in complex indoor scenarios. Geng
+and Chu Lin developed a navigation scheme based on multi-height sensor fusion and fault-tolerant
+Kalman filtering (FTKF) [2]. They fused data from barometers, radar altimeters, and laser rangefinders,
+Content from this work may be used under the terms of the Creative Commons Attribution 4.0 licence. Any further distribution
+of this work must maintain attribution to the author(s) and the title of the work, journal citation and DOI.
+Published under licence by IOP Publishing Ltd
+1
+
+RAMT-2025
+
+IOP Publishing
+
+Journal of Physics: Conference Series 3133 (2025) 012015
+
+doi:10.1088/1742-6596/3133/1/012015
+
+and applied residual chi-square tests and state chi-square tests to detect and isolate faulty sensors. Even
+when a single sensor failed, the method relied on other sensors to maintain stable system operation.
+Simulation results showed that the method demonstrated strong reliability and robustness in UAV
+altitude fusion and fault-tolerant control.
+Yu et al. proposed a multi-sensor altitude prediction algorithm based on Kalman filtering [3], which
+integrates accelerometer, barometer, and laser rangefinder data for UAV altitude estimation. It can
+compensate for a single sensor failure using data from other sensors, exhibiting strong fault tolerance.
+Experimental results showed that the algorithm effectively reduced noise, improved altitude prediction
+accuracy, and maintained stability and robustness in GPS-denied indoor environments.
+Long et al. addressed the problem of altitude control instability in hexacopter UAVs caused by
+altitude estimation bias and varying payload mass [6]. A height measurement system based on barometer–
+accelerometer fusion via Kalman filtering was developed, along with a dual-loop PID controller
+enhanced with feedforward control. This approach was applied to a hexacopter plant protection UAV
+and achieved accurate altitude estimation and stable altitude control.
+Therefore, Kalman filter–based multi-sensor altitude fusion is an effective way to improve UAV
+altitude-hold performance. Since GPS is unavailable indoors, this paper focuses on fusing barometer,
+laser rangefinder, and accelerometer data. To address sudden laser disturbances and slow barometer drift,
+a fault-tolerant adaptive Kalman filter is designed with an augmented state model that introduces a
+barometric bias term for continuous calibration. Through adaptive noise covariance adjustment, the
+method maintains stability and accuracy even during laser anomalies.
+2. Multi-Sensor Observation Mode
+Due to the lack of GPS signals in indoor environments, this study focuses on alternative sensors such as
+barometers, laser rangefinders, and accelerometers for altitude estimation, without relying on GPS.
+Moreover, this paper does not actually conduct unmanned aerial vehicle (UAV) flights. Instead, it studies
+the highly integrated algorithm of UAVs indoors in MATLAB.
+2.1 Barometer Model
+The barometer estimates altitude from atmospheric pressure, temperature, and elevation. The relation
+is[7]:
+R
+T p −
+H = b [( H ) gn − 1] + Hb (   0)
+(1)
+ pb
+where H is altitude, Tb the base temperature,  the lapse rate, pH the measured pressure, pb the base
+pressure, R the gas constant, gn gravity, and Hb the base geopotential height. Since the proposed
+altitude fusion algorithm is designed for indoor environments, the ideal barometer measurements in this
+study are calculated using a simplified International Standard Atmosphere (ISA) model. It is assumed
+that the indoor temperature remains constant at T0 = 25 C . In the troposphere, the temperature
+decreases linearly with altitude H , and the atmospheric pressure decreases exponentially with altitude.
+The ideal pressure at a given altitude H can therefore be expressed as:
+
+
+h
+)
+5.256ln(1−
+153.8462T0 
+
+
+P ( H ) = P0 10
+
+(2)
+
+where P0 = 101325 Pa is the standard sea-level atmospheric pressure. The corresponding altitude can
+be calculated from the measured pressure using:
+
+P
+(( )1/5.257 − 1) (T + 273.15)
+P
+h=− 0
+0.0065
+
+2
+
+(3)
+
+RAMT-2025
+
+IOP Publishing
+
+Journal of Physics: Conference Series 3133 (2025) 012015
+
+doi:10.1088/1742-6596/3133/1/012015
+
+where T = 25 − 0.0065H represents the temperature corrected for altitude. Considering that barometer
+measurements are affected by both random noise and slow drift, the model can be expressed as:
+Pn (k ) = P(k ) + nP (k ) + dP (k )
+(4)
+where nP (k ) is zero-mean Gaussian white noise representing measurement noise, and dP ( k ) is a
+slowly varying drift term representing the long-term bias of the barometer. The final pressure Pn (k ) is
+converted to the barometric altitude output by applying (3):
+zb ( k ) = f ( Pn (k )) = h ( k ) + e ( k )
+(5)
+where h ( k ) is the true altitude, and e ( k ) is the altitude deviation.
+2.2 Laser Rangefinder Model
+The laser rangefinder measures distance by emitting a narrow laser beam and calculating the time
+between emission and reception of the reflected signal. It is lightweight, compact, easy to use, and offers
+fast, accurate measurements with errors significantly smaller than those of conventional optical
+rangefinders. Its measurement model can be expressed as:
+zl ( k ) = h ( k ) + nl ( k )
+(6)
+where zl ( k ) denotes the measurement output of the laser rangefinder, and nl ( k ) is zero-mean
+Gaussian white noise with variance l2 . It should be noted that in complex indoor environments, laser
+range measurements may suffer from step-like disturbances caused by variations in reflective surfaces
+or temporary occlusions.
+2.3 Accelerometer Model
+Assuming that the accelerometer error follows Gaussian white noise, the measurement equation of the
+accelerometer can be expressed as[8]:
+za (k ) = a(k ) + na (k )
+(7)
+where za (k ) is the vertical acceleration measurement output, a (k ) is the true vertical acceleration of
+the UAV, and na (k ) is the accelerometer measurement noise. The navigation frame (ENU, origin at
+UAV center of mass), and body frame (fixed to the UAV) are defined as in Figure 1. The accelerometer
+T
+measures the three-axis acceleration in the body frame, denoted as ab = [abx , aby , abz ] . which must be
+T
+transformed into the navigation frame ag = [ agx , agy , agz ] and corrected for gravity. This
+
+b
+
+transformation can be achieved using a direction cosine matrix (DCM) Cg , and the relationship is:
+
+ag = [agx , agy , agz ]T = Cgb [abx , aby , abz ]T
+
+Figure 1. The relationship between the navigation coordinate system and the body coordinate system.
+
+3
+
+(8)
+
+RAMT-2025
+
+IOP Publishing
+
+Journal of Physics: Conference Series 3133 (2025) 012015
+
+doi:10.1088/1742-6596/3133/1/012015
+
+The transformation is typically parameterized using the attitude Euler angles-roll, pitch, and yaw—
+b
+denoted as  ,  , and  , respectively. DCM Cg can be expressed as:
+
+cos cos  cos sin  sin  − sin cos  cos sin  cos  + sin sin  
+Cgb =  sin cos  sin sin  sin  + cos cos  sin sin  cos  − cos sin  
+(9)
+ − sin 
+
+− sin 
+cos  cos 
+Let agz represent the vertical component of the UAV acceleration in the navigation frame. Then,
+the UAV’s acceleration relative to the Earth can be expressed as:
+
+a = agz − g
+
+(10)
+
+3. System Model and Algorithm Principle
+3.1 System Model Establishment
+To achieve accurate UAV altitude estimation and continuous calibration of the barometer bias, this paper
+selects altitude h , vertical velocity v , and barometer bias e as state variables. The state vector is
+defined as x(k ) = [h(k ), v(k ), e(k )]T . The system input is the vertical acceleration u (k ) = a . The
+measurement vector is z (k ) = [ zb (k ), zl (k )]T , where zb (k ) is the barometer measurement, and zl (k )
+is the laser rangefinder measurement. The discrete-time state equation of the Kalman filter can be
+expressed as:
+x(k + 1) = Ax(k ) + Bu(k ) + w(k − 1)
+(11)
+
+1 T 0 
+T
+T 2
+
+
+
+The state transition matrix is A = 0 1 0  , the input matrix is B = 
+T 0  , and T is
+2
+
+
+0 0 1 
+the sampling period. w(k − 1) denotes the process noise, which is assumed to follow a zero-mean
+Gaussian distribution with covariance Q = diag ( 2h , v2 , e2 ) . The measurement equation is given by:
+
+z (k ) = Hx(k ) + v(k )
+
+(12)
+
+1 0 1 
+ is the observation matrix, and v(k ) represents the measurement noise with zero
+1 0 0 
+mean and covariance R = diag ( 2b , l2 ) .
+where H = 
+
+3.2 Kalman Filtering and Adaptive Noise Adjustment
+Based on the established state and measurement equations, this paper adopts an extended Adaptive
+Kalman Filter (AKF) to achieve multi-sensor altitude fusion and fault-tolerant estimation. The basic
+recursive process of Kalman filtering consists of two steps: prediction and update.
+The prediction step can be expressed as:
+xˆ (k | k − 1) = Axˆ (k − 1| k − 1) + Bu(k )
+(13)
+(14)
+P(k | k − 1) = AP(k − 1| k − 1) AT + Q
+where xˆ (k | k − 1) denotes the one-step predicted state estimate, and P(k | k − 1) is the predicted error
+covariance matrix.
+The update step involves the following operations:
+The innovation covariance is given by Equation (15):
+
+r (k ) = z (k ) − Hxˆ (k | k − 1)
+
+The Kalman gain is computed using Equation (16):
+
+4
+
+(15)
+
+RAMT-2025
+
+IOP Publishing
+
+Journal of Physics: Conference Series 3133 (2025) 012015
+
+doi:10.1088/1742-6596/3133/1/012015
+
+K (k ) = P(k | k − 1) H T [ HP(k | k − 1) H T + R(k )]−1
+
+(16)
+
+The state and error covariance are updated according to Equations (17) and (18):
+
+xˆ (k | k ) = xˆ (k | k − 1) + K (k )r (k )
+P(k | k ) = [ I − K (k ) H ]P(k | k − 1)
+
+(17)
+(18)
+
+3.2.1 Adaptive Adjustment of Measurement Noise Covariance R . Because laser rangefinders in indoor
+environments are susceptible to sudden disturbances, a fixed measurement noise covariance matrix RRR
+cannot accurately capture real measurement uncertainty. In this work, RRR is adaptively tuned based on
+residual statistics, as expressed in Equation (19):
+(19)
+R(k ) =  R(k − 1) + (1 −  )[r (k )r (k )T + HP(k | k − 1) H T ]
+where   (0,1) is a smoothing factor used to prevent over-adjustment caused by a single abrupt
+disturbance. When the laser measurement residual rl ( k ) exceeds a preset threshold, the corresponding
+
+Rlaser is further increased. This reduces the influence of laser measurements on the altitude estimation,
+thereby increasing the filter’s reliance on barometer readings and improving the fault tolerance of the
+system.
+3.2.2 Adaptive Adjustment of Process Noise Covariance Q . In altitude state estimation, the process
+noise covariance Q reflects the model’s tolerance for free state variations. In this study, Q is adaptively
+adjusted based on the correlation between the Kalman gain and the residual, as expressed in Equation
+(20):
+(20)
+Q(k ) =  Q(k − 1) + (1 −  ) K (k )r (k )r (k )T K ( k )T
+When the system operates under steady conditions, Q gradually decreases, resulting in smoother
+altitude estimation. Conversely, during periods of laser measurement disturbance or significant
+barometric drift, Q is increased to enhance the model’s adaptability to abnormal conditions. By jointly
+adapting both R and Q , the Kalman filter can automatically reduce the weight of laser measurements
+during abnormal events, while relying more on the barometer’s stable trend to maintain continuity of
+altitude estimation. Furthermore, the inclusion of the barometric bias state allows gradual calibration of
+accumulated barometer errors, thereby improving the overall estimation accuracy and robustness of the
+system.
+4. Simulation Results and Analysis
+4.1 Simulation Environment and Parameter Settings
+To verify the effectiveness of the proposed adaptive Kalman filter–based multi-sensor altitude fusion
+and fault-tolerant method, a MATLAB simulation platform was established. The true UAV altitude was
+set to a constant value of 15m . The sampling period was T = 0.1s , and the total number of simulation
+steps was N = 6000 . The barometer measurement was modeled as the ideal pressure with added zeromean Gaussian noise (  np = 1 Pa) and a linear drift increasing from 0 to 3 Pa over the simulation. The
+laser rangefinder measurements were modeled as Gaussian, with a mean equal to the true altitude and
+standard deviation laser = 0.01m .To simulate the situation where an obstacle appears below the UAV,
+a disturbance was introduced to the laser rangefinder measurements during t = 300 to 400 s. The initial
+filter state was set to h = 14.5m , v = 0 , a = 0 , and e = 0 .
+4.2 Altitude Estimation Results
+The following figures illustrate two scenarios of sudden disturbances in the laser rangefinder
+measurement when simulating the presence of an obstacle beneath the UAV, along with the true altitude,
+
+5
+
+RAMT-2025
+
+IOP Publishing
+
+Journal of Physics: Conference Series 3133 (2025) 012015
+
+doi:10.1088/1742-6596/3133/1/012015
+
+barometer measurement, laser measurement, and altitude estimation results under different algorithms.
+The two cases correspond to a −1m step change and a ramp disturbance of the laser measurement
+occurring between t = 300 and t = 400s , as shown in Figure 2.
+
+(a)
+
+(b)
+
+Figure 2. Laser step and ramp disturbance scenarios.
+
+As can be seen from the figure, the non-adaptive fusion method fails to effectively suppress the
+influence of the laser disturbances, resulting in large deviations in the estimated altitude. In contrast, the
+proposed method, which combines an adaptive Kalman filter with barometer bias calibration, adaptively
+adjusts the measurement noise covariance Rlaser in response to the residuals during the disturbance
+period. This adaptive mechanism gradually increases the variance of the laser measurement, reducing
+its weight in the data fusion process. As a result, the estimated altitude no longer follows the laser
+measurements closely during the disturbance, but instead, it gradually converges toward the barometer
+readings, thereby avoiding deviation caused by the laser step change. The final estimated altitude
+remains consistent with the barometer’s trend, exhibiting stronger smoothness and stability and
+effectively mitigating the impact of anomalies on altitude estimation.
+Furthermore, the bias state e remains stable during the disturbance period, preventing
+contamination of the barometer calibration process by abnormal laser measurements. This contributes
+to further improving the overall stability and robustness of the altitude estimation.
+4.3 Estimation Results of the Bias Term
+
+Figure 3. Error estimation result.
+
+Figure 3 illustrates the variation of the bias term e of the barometer. It can be observed that when the
+barometer exhibits continuous drift, the bias term e can gradually track this drift trend, thereby
+achieving dynamic calibration of the barometer measurements. During the period of laser disturbances,
+e remains relatively stable and is not affected by abnormal laser measurements. Furthermore, after long-
+
+6
+
+RAMT-2025
+
+IOP Publishing
+
+Journal of Physics: Conference Series 3133 (2025) 012015
+
+doi:10.1088/1742-6596/3133/1/012015
+
+term filtering, the convergence trend of e aligns well with the barometer drift, indicating that the
+introduction of e effectively improves the reliability of the fusion results.
+4.4 Effect of Adaptive Parameter Adjustment
+As shown in Figure 4, In both step-change and ramp-change scenarios, the comparative results
+demonstrate that when the laser residual increases, Rlaser dynamically rises, effectively suppressing the
+influence of abnormal data on the estimated altitude. After the disturbance subsides, Rlaser gradually
+decreases, allowing the laser information to regain weight in the fusion process.
+Meanwhile, the process noise covariance Q moderately increases during the disturbance period,
+granting the altitude state greater freedom to vary and thereby maintaining a smooth transition in the
+estimation results.
+
+Figure 4. Covariance trend.
+
+4.5 Analysis and Discussion
+The simulation results confirm that the proposed adaptive Kalman filter–based multi-sensor height
+fusion and fault-tolerant method achieves robust and stable altitude estimation for indoor UAVs. By
+introducing a barometer bias state, the filter continuously compensates for barometric drift, preventing
+long-term offset in the fused altitude and validating the effectiveness of the state-augmented model.
+Under normal conditions, the estimated altitude closely follows the true value, balancing barometer and
+laser data to maintain both accuracy and smoothness.
+During laser measurement anomalies, the adaptive mechanism dynamically increases the laser
+measurement noise covariance, reducing the influence of faulty data and allowing the estimate to
+converge back toward the barometer trend. This behavior is observed for both step and ramp
+disturbances, indicating good tolerance to abrupt and gradual errors. Analysis of the Kalman gain,
+residuals, and noise covariances shows that the filter adaptively re-weights sensor contributions in
+response to abnormal observations, maintaining robustness in multi-sensor environments.
+However, as the process noise covariance converges to smaller values, the system becomes more
+prediction-driven, which may slightly degrade instantaneous tracking but improves overall stability—
+an advantage in indoor flight scenarios.
+In recent years, machine learning has been increasingly applied to multi-sensor fusion and anomaly
+detection. Unsupervised learning can detect sudden laser or barometer anomalies early and adjust filter
+weights more rapidly, while deep learning can model sensor noise characteristics to improve filter
+accuracy and robustness. Future work will further explore these methods to enhance adaptability in
+complex indoor environments.
+
+7
+
+RAMT-2025
+
+IOP Publishing
+
+Journal of Physics: Conference Series 3133 (2025) 012015
+
+doi:10.1088/1742-6596/3133/1/012015
+
+5 Conclusion
+This paper proposes a multi-sensor altitude fusion and fault-tolerant method for indoor UAVs based on
+adaptive Kalman filtering. By introducing a barometer bias state and adaptively adjusting process and
+measurement noise covariances, the method continuously calibrates barometer drift and suppresses
+sudden laser errors. Simulation results show that:
+1. The estimated altitude remains stable under slow barometer drift, eliminating cumulative bias.
+2. During step or ramp anomalies in laser measurements, dynamic noise adjustment mitigates
+abnormal data and maintains smooth altitude estimation.
+3. The adaptive variation of Kalman gain and noise covariances ensures robustness under varying
+measurement conditions.
+In summary, the proposed method achieves accurate and fault-tolerant altitude estimation in
+complex indoor environments, but its response to anomalies remains limited. Future work will explore
+machine learning for faster fault detection and more precise adaptive tuning of Kalman filter parameters.
+Acknowledgments
+This work was financially supported by the Enhancing the Basic Scientific Research Capabilities of
+Young and Middle-aged Teachers in Guangxi Universities and Colleges, No. 2025KY0894; The
+National Key Lab of Autonomous Intelligent Unmanned Systems (Beijing Institute of Technology),
+grant no. ZZKF2024-1-5.
+References
+[1] PRITZL, Václav, et al. “Adaptive estimation of UAV altitude in complex indoor environments using degraded and timedelayed measurements with time-varying uncertainties.” Robotics and Autonomous Systems, vol. 160, 2023, pp. 104315.
+[2] GENG, KeKe; CHULIN, N. A. "Applications of multi-height sensors data fusion and fault-tolerant Kalman filter in
+integrated navigation system of UAV." Procedia Computer Science, vol. 103, 2017, pp. 231–238.
+[3] Yu, X., Xu, Y., Liang, H., et al. “Multi-sensor fusion height prediction algorithm based on Kalman filtering.” Proceedings
+of the 2019 Chinese Control Conference (CCC), IEEE, 2019, pp. 3016–3022.
+[4] C. Brommer, R. Jung, J. Steinbrener, and S. Weiss, “MaRS: A modular and robust sensor-fusion framework,” IEEE Robot.
+Autom. Lett., vol. 6, no. 2, pp. 359–366, 2021.
+[5] Dang, B., Wu, Y., Dou, Y., et al. “UAV altitude fusion method based on Kalman filter.” Fire Control Radar Technology,
+vol. 53, no. 04, 2024, pp. 47–50, 60. DOI: 10.19472/j.cnki.1008-8652.2024.04.008.
+[6] Long, W., Chen, Y., Wu, H., et al. "Height control for six-rotor UAV under varying payloads." Journal of Sensor
+Technology, vol. 30, no. 07, 2017, pp. 1125–1130.
+[7] X. Chen, C. Chen, W. Zhang, et al., “High-precision and high-stability barometric altitude measurement system,” Sensors
+and Microsystems, vol. 42, no. 12, pp. 111–114, 2023.
+[8] Y. Liu, H. Yan, G. Peng, et al., “Research on MEMS three-axis accelerometer error calibration and compensation
+methods,” Sensors and Microsystems, vol. 42, no. 11, pp. 58–61, 65, 2023.
+
+8
+
+

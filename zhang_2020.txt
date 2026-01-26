@@ -1,0 +1,726 @@
+Proceedings of the 39th Chinese Control Conference
+July 27-29, 2020, Shenyang, China
+
+Improved Kalman Algorithm for Vertical Height and Velocity
+Information Fusion of Multi-rotor Unmanned Aerial Vehicle
+Xin Zhang
+School of Electrical and Information Technology, Changchun Institute of Technology, Changchun 130012
+E-mail: 26290256@qq.com
+Abstract: The paper presents an improved Kalman filter algorithm. It can ensure the precision and stability of the vertical height
+and velocity information of the multi-rotor unmanned aerial vehicle (UAV), when the statistical characteristics of the system
+noise and the measurement noise are unknown. The algorithm uses the accelerometer to provide prediction information and
+adopts the barometric altimeter to provide measurement information. It can estimates the system noise and the measurement
+noise based on the characteristics of these two sensors. The flight experiment and analysis shows that the obtained vertical height
+information error is less than 1m, the information update frequency can reach 100Hz, and the good fusion effect of vertical
+velocity information is obtained. The improved Kalman algorithm can meet the needs of the multi-rotor unmanned aerial vehicle
+flight control.
+Key Words: Kalman filter, Information fusion, Multi-rotor unmanned aerial vehicle, Vertical height and velocity estimation
+
+
+
+1
+
+Introduction
+
+Obtaining high-precision, high-update frequency vertical
+motion information is the key technology to realize the
+autonomous take-off and landing of the multi-rotor
+unmanned aerial vehicle (UAV), and is crucial to the
+stability and safety of low-height flight [1,2].
+
+information. It takes the noise variance calculated by the
+accelerometer in the stationary state to estimate the system
+noise variance, and takes a constant value to estimated
+measurement noise. Through the improvement of Kalman
+filter algorithm, a better fusion effect of vertical height and
+velocity information is obtained, which can meet the needs
+of the multi-rotor unmanned aerial vehicle flight control.
+
+2
+The accelerometer calculating process of vertical velocity
+and height has a high update frequency and accuracy in a
+short time. But it is an integration process and is sensitive to
+the vibration of the carrier. Over time, the drift errors
+accumulate and become larger. The barometric altimeter has
+high accuracy in measuring height information. and there is
+no integration process. But the accuracy is lower when the
+barometric altimeter is close to the ground, and it is easily
+affected by wind disturbances and temperature[3].
+Kalman filter is currently recognized as the most suitable
+algorithm for the information fusion of the multi-sensor
+navigation, but when the conventional Kalman filtering
+algorithm is applied, the statistical characteristics of the
+system noise and the measurement noise need to be known
+[4,5]. However, in the practical applications of the
+multi-rotor unmanned aerial vehicle, the statistical
+characteristics of the system noise and the measurement
+noise are unknown, which makes the conventional Kalman
+filter algorithm loses its optimality, the estimation accuracy
+is greatly reduced, even will cause the filter divergence. This
+paper presents an improved Kalman filter algorithm. It uses
+the accelerometer to provide prediction information and
+adopts the barometric altimeter to provide measurement
+*
+
+This work is supported by Science and Technology Research Project in
+13th Five-Year Period of Department of Education of Jilin Province under
+Grant JJKH20191256KJ.
+*
+This work is supported by Science and Technology Development
+Program of Jilin Province under Grant 20190201028JC.
+
+Linear System Modeling
+
+The vertical height and velocity estimation of the
+multi-rotor unmanned aerial vehicle can be described by
+linear mathematical model[1].
+
+­°h ve
+®
+n
+°̄vez az
+
+(1)
+
+The state equation of state space model is:
+
+x
+
+Ax  Bu
+
+(2)
+
+where
+
+> h vez @ is 2 u1 -dimensional state vector, h is the
+T
+
+x
+
+vertical height, vez is the vertical velocity, u is input quantity,
+
+u
+
+azn , azn is the linear acceleration of the z-axis in the
+
+navigation coordinate system,
+
+A
+
+ª0 1 º
+«0 0 » ˈ B
+¬
+¼
+
+ª0º
+«1 » .
+¬ ¼
+
+3056on January 26,2026 at 20:07:15 UTC from IEEE Xplore. Restrictions apply.
+Authorized licensed use limited to: National University of Singapore. Downloaded
+
+The research object is the multi-rotor unmanned aerial
+vehicle used in the civil field. It is generally flying near the
+ground and has a short navigation distance and time. So the
+simplification is as follows: Ignore the Coriolis correction,
+the effect of centripetal force and the rotation of the earth.
+There is no rotation correction or dynamic correction. Then
+the navigation equation in the local geographic coordinate
+system is simplified as:
+
+ven
+
+Cbn f b  g
+
+Zk is the measurement amount, which is provided by the
+height information output of the barometric altimeter. Vk is
+the measurement noise amount. Considering that the noise
+error of the barometric altimeter cannot be simply
+considered as white noise, its statistical characteristics are
+unknown.
+
+H
+
+ª¬vex
+
+T
+
+vez º¼ is the ground velocity in the
+
+vey
+
+To sum up, the discrete time linear state space model of
+the vertical height and velocity information fusion system
+for the multi-rotor unmanned aerial vehicle is as follows:
+
+output of the accelerometer in the body coordinate systemˈ
+
+­Xk
+®
+¯Zk
+
+Cbn is strapdown matrix, and g [0 0  g ]T , g is
+gravitational acceleration. Then,
+
+vez =azn
+
+is the pinch angel,
+
+J is the roll angle, and
+
+T
+
+ª¬ ax a y az º¼ is the linear acceleration output of the
+accelerometer in the body coordinate system.
+
+ΦX k 1  Buk 1  ΓWk 1
+
+­
+ª1 2 º
+° ª hk º ª1 Ts º ª hk 1 º  « 2 Ts » (a n  W )
+k 1
+° «vek »¼ «¬0 1 »¼ «¬vek 1 »¼ «
+» zk 1
+°¬
+T
+(8)
+¬ s ¼
+®
+°
+ªh º
+° Z k >1 0@ « k »  Vk
+°¯
+¬vek ¼
+3
+
+The linear state equation of discrete time is:
+
+Xk
+
+(5)
+
+Design of Improved Kalman Filter Algorithm
+
+For the improved Kalman filter algorithm, in a
+information fusion cycle, the complete estimation steps are:
+
+z State single-step predicting
+
+where
+
+^
+
+Φ
+
+Xk
+
+(7)
+
+HX k  Vk
+
+(4)
+
+Where
+
+ab
+
+ΦX k 1  Buk 1  ΓWk 1
+
+that is
+
+  sin T ax  sin J cos T a y  cos J cos T az  g
+
+T
+
+>1 0@ is 1u 2 -dimensional constant coefficient
+
+measurement matrix.
+
+local geographic coordinate system, f b is the three-axis
+
+u
+
+(6)
+
+Where
+
+(3)
+
+Where
+
+ven
+
+HX k  Vk
+
+Zk
+
+ª1 Ts º
+«0 1 » , B
+¬
+¼
+
+> hk
+
+ª1 2 º
+« 2 Ts » ,
+«
+»
+¬ Ts ¼
+
+vezk @ is 2 u1 -dimensional state vector, Ts
+T
+
+is the information fusion cycle, Wk is the system noise
+amount. Its variance statistical characteristics are
+completely determined by the statistical characteristics of
+the model input, that is, by the statistical characteristics of
+the accelerometer. Taking the system noise matrix is
+Γ B.
+The measurement equation of discrete time state space
+model is:
+
+^
+
+X k / k 1
+
+Φ X k 1  Buk -1
+
+(9)
+
+z Innovation sequence updating
+
+vk
+
+^
+
+Z k  H X k / k 1
+
+(10)
+
+z State one-step prediction mean square error matrix
+update
+
+Pk / k 1
+
+^
+
+ΦPk 1ΦT  Γ Q k 1 Γ T
+
+(11)
+
+z Measurement noise estimating
+^
+
+Rk
+
+^
+
+( I  βk ) R k 1  βk [( I  HK k 1 )v k vkT ( I  HK k 1 )T  HPk 1 H T ]
+
+(12)
+
+z Filter gain updating
+
+Kk
+z State estimating
+
+Pk / k 1 H T
+^
+
+(13)
+
+HPk / k 1 H  R k
+T
+
+3057on January 26,2026 at 20:07:15 UTC from IEEE Xplore. Restrictions apply.
+Authorized licensed use limited to: National University of Singapore. Downloaded
+
+^
+
+^
+
+X k = X k / k 1  K k vk
+
+(14)
+
+z State estimation mean square error matrix update
+
+Pk =(I -K k H )Pk / k -1 (I -K k H )T  K k Rk K kT
+
+(15)
+
+z System noise estimating
+^
+
+Q k = Acceleration variances calculated by accelerometer
+(16)
+The algorithm only needs given initial value X 0ˈP0ˈQ0 ,
+just it can get the vertical height and velocity state
+estimation Xˆ k at time k by the recursive calculation [6].
+
+4.2
+
+Results and Analysis
+
+According to the improved Kalman filter algorithm, the
+statistical characteristics of the measured noise is adaptively
+estimated in real time. The experimental curve is shown in
+Fig. 1. The three curves in the figure are the height curve of
+barometric altimeter, the vertical height information fusion
+curve and the vertical velocity information fusion curve.
+20
+10
+0
+-10
+
+0
+
+20
+
+40
+
+60
+
+80
+
+100
+
+120
+
+140
+
+160
+
+180
+
+200
+
+120
+
+140
+
+160
+
+180
+
+200
+
+120
+
+140
+
+160
+
+180
+
+200
+
+t/s
+20
+10
+
+The statistical characteristics of the system noise in the
+model are completely determined by the accelerometer.
+Obtaining the vertical height and velocity information,
+through an accelerometer, is an integration process. It is not
+suitable to use an adaptive algorithm to estimate the system
+
+ˆ
+noise Q
+k
+
+in real time. The variance calculated by the
+
+accelerometer in a stationary state can be used as the system
+noise. The method is to sample the accelerometer output
+information for a period of time before each takeoff of the
+unmanned aerial vehicle, and the output variance calculated
+is used as the statistical characteristics of the system noise of
+this flight. At this time, the unmanned aerial vehicle is
+stationary relative to the ground and the engine is not started.
+The measurement noise Rˆ k is determined by the barometric
+altimeter, and which needs to be estimated adaptively
+according to Formula (12).
+
+4
+
+Experiment and analysis
+
+4.1 Experiment Conditions
+The experimental data are acquired from the multi-rotor
+unmanned aerial vehicle carrying the ADIS16488 inertial
+measurement unit (IMU). The inertial measurement unit has
+a three-axis accelerometer and a barometric altimeter. The
+initial sensitivity of the accelerometer is (1.221 h 10-8)
+g/LSB, and the initial sensitivity of the barometric altimeter
+is (6.1h10-7) mbar/LSB.
+
+z The accelerometer output information is updated once
+every TA Ĭ 0.01s. and the barometric altimeter is
+updated once every TB= 0.02s. Every TK=0.02s, The
+improved Kalman filter algorithm is used to estimate
+vertical height and velocity information.
+z Using the information calculated by the accelerometer is
+to interpolate between each TK cycle, the frequency of
+information fusion can reach f h 100 Hz .
+z Evaluation method for the effectiveness of the algorithm:
+In flight experiments, the barometric altimeter has high
+accuracy when it is far from the ground. Therefore, when
+the multi-rotor unmanned aerial vehicle is flying stably
+in the air, the barometric altimeter output can be used as
+a standard reference curve.
+
+0
+-10
+
+0
+
+20
+
+40
+
+60
+
+80
+
+100
+
+t/s
+10
+0
+-10
+
+0
+
+20
+
+40
+
+60
+
+80
+
+100
+
+t/s
+
+Fig. 1: The vertical height and velocity curves of the improved
+Kalman filter algorithm( Rˆ is estimated adaptively.)
+k
+
+The experimental results show that the root mean square
+error of the fusion height is less than 1m, which basically
+meets the requirements, but the curve is not smooth. In
+addition, the fusion effect of vertical velocity is very poor
+and cannot be directly used for flight control. Therefore, the
+designed algorithm needs to be modified.
+Through analysis, it can be known that the body vibration
+of the multi-rotor unmanned aerial vehicle is the main
+source of disturbance for navigation information
+measurement [7]. The main frequency of body vibration is
+about 35Hz, and the output update frequency of the
+barometric altimeter is 50Hz, their frequency are very close.
+So there is a large error in the measurement noise estimation
+value calculated by Formula (12), and the statistical
+characteristics of measurement noise cannot be truly
+expressed. Therefore, the measurement noise estimation is
+determined to be constant through multiple flight
+experiments,
+
+Rˆk
+
+d
+
+(17)
+
+Φ, H, and Γ in Formula (7) are constant matrices, so the
+Formula (11) is modified as
+
+Pk / k 1
+
+^
+
+ΦP0ΦT  Γ Q Γ T
+
+P
+
+(18)
+
+the Formula (13) is modified as
+
+3058on January 26,2026 at 20:07:15 UTC from IEEE Xplore. Restrictions apply.
+Authorized licensed use limited to: National University of Singapore. Downloaded
+
+PH T
+
+K
+
+(19)
+
+^
+
+HPH T  R
+
+Barometer Height (m)
+
+According to the modified algorithm, the experimental
+curve is shown in Fig. 2.
+20
+10
+
+measurement unit, and the vertical height error was less
+than 1m. By observing the experimental curves, the
+vertical velocity information fusion effect is good, but it
+is currently impossible to make a quantitative analysis of
+the accuracy.
+z The improved Kalman filter algorithm can make the
+vertical height and velocity information update
+frequency reach 100Hz, which is more in line with the
+high-frequency dynamic changes of the multi-rotor
+unmanned aerial vehicle.
+
+0
+-10
+
+0
+
+20
+
+40
+
+60
+
+80
+
+100
+
+120
+
+140
+
+160
+
+180
+
+200
+
+Vertical Heght (m)
+
+t/s
+20
+
+References
+
+10
+0
+-10
+
+0
+
+20
+
+40
+
+60
+
+80
+
+100
+
+120
+
+140
+
+160
+
+180
+
+200
+
+120
+
+140
+
+160
+
+180
+
+200
+
+Vertical Velocity (m/s)
+
+t/s
+5
+
+0
+
+-5
+
+0
+
+20
+
+40
+
+60
+
+80
+
+100
+
+t/s
+
+Fig. 2: The vertical height and velocity curves of the modified
+algorithm( Rˆ is constant)
+k
+
+The fusion effect of the modified algorithm is better ˈ
+which can meet the needs of the multi-rotor unmanned aerial
+vehicle flight control. However, the vertical velocity fusion
+accuracy comparison cannot be performed at present, and
+further analysis and research are needed.
+
+5
+
+Conclusion
+
+z The improved Kalman filter algorithm is simple and
+effective, which can correctly judge the sensor
+characteristics of the accelerometer and barometric
+altimeter, and ensure the accuracy of the estimated
+value.
+z The flight experiment was performed on a multi-rotor
+unmanned aerial vehicle carrying an inertial
+
+[1] M. Błachuta, R. Czyba, W. Janusz, G. Szafranski, Data fusion
+algorithm for the altitude and vertical speed estimation of the
+VTOL platform, Journal of Intelligent & Robotic Systems,
+74(1-2): 413-420,2014 .
+[2] ZM. Zheng, JY. Liu, WX. Qian, Altitude data processing and
+fusion technique in satellite navigation and baro-altimeter,
+Journal of Applied Sciences - Electronics and Information
+Engineering, 28(3): 277–282, 2010.
+[3] XS. Lei, JJ. Li, An adaptive altitude information fusion
+method for autonomous landing processes of small
+unmanned aerial rotorcraft, Sensors, (12): 13212–13224,
+2012.
+[4] X. Zhang, Y. Bai, ZJ. Xu, et al, Attitude estimation of the
+multi-rotor UAV based on simplified adaptive Kalman filter
+algorithm, in China Intelligent Automation Conference 2015
+(CIAC2015), 2015:219-227.
+[5] W. Gao, JC. Li, Adaptive kalman filtering for the integrated
+SINS/DVL system. Journal of Computational Information
+Systems, 9(16):6443-6450, 2013.
+[6] X. Zhang, Y. Bai, CJ. Zhao, et al, Improved adaptive
+extended Kalman algorithm for attitude estimation of
+multi-rotor UAV, Optics and Precision Engineering, 22(12):
+3385–3391, 2014.
+[7] RJ. Wang, Y. Bai, ZJ. Xu, et al, A composite disturbance
+compensation method for airborne platform based on
+improved disturbance observer, Journal of Optoelectronics
+Laser, 26(1):108-115,2015.
+
+3059on January 26,2026 at 20:07:15 UTC from IEEE Xplore. Restrictions apply.
+Authorized licensed use limited to: National University of Singapore. Downloaded
+
+

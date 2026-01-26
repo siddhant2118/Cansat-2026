@@ -1,0 +1,1338 @@
+Sensors 2014, 14, 13324-13347; doi:10.3390/s140813324
+
+OPEN ACCESS
+
+sensors
+
+ISSN 1424-8220
+www.mdpi.com/journal/sensors
+Article
+
+A Sensor Fusion Method for Tracking Vertical
+Velocity and Height Based on Inertial and Barometric
+Altimeter Measurements
+Angelo Maria Sabatini * and Vincenzo Genovese
+The BioRobotics Institute, Scuola Superiore Sant’Anna, Viale Rinaldo Piaggio, Pontedera 34 56025,
+Pisa, Italy; E-Mail: vincenzo.genovese@sssup.it
+* Author to whom correspondence should be addressed; E-Mail: sabatini@sssup.it;
+Tel.: +39-050-883-415; Fax: +39-050-883-101.
+Received: 26 January 2014; in revised form: 8 July 2014 / Accepted: 21 July 2014 /
+Published: 24 July 2014
+
+Abstract: A sensor fusion method was developed for vertical channel stabilization by
+fusing inertial measurements from an Inertial Measurement Unit (IMU) and pressure altitude
+measurements from a barometric altimeter integrated in the same device (baro-IMU). An
+Extended Kalman Filter (EKF) estimated the quaternion from the sensor frame to the
+navigation frame; the sensed specific force was rotated into the navigation frame and
+compensated for gravity, yielding the vertical linear acceleration; finally, a complementary
+filter driven by the vertical linear acceleration and the measured pressure altitude produced
+estimates of height and vertical velocity. A method was also developed to condition the
+measured pressure altitude using a whitening filter, which helped to remove the short-term
+correlation due to environment-dependent pressure changes from raw pressure altitude.
+The sensor fusion method was implemented to work on-line using data from a wireless
+baro-IMU and tested for the capability of tracking low-frequency small-amplitude vertical
+human-like motions that can be critical for stand-alone inertial sensor measurements.
+Validation tests were performed in different experimental conditions, namely no motion,
+free-fall motion, forced circular motion and squatting. Accurate on-line tracking of height
+and vertical velocity was achieved, giving confidence to the use of the sensor fusion
+method for tracking typical vertical human motions: velocity Root Mean Square Error
+(RMSE) was in the range 0.04–0.24 m/s; height RMSE was in the range 5–68 cm, with
+statistically significant performance gains when the whitening filter was used by the sensor
+fusion method to track relatively high-frequency vertical motions.
+
+Sensors 2014, 14
+
+13325
+
+Keywords: sensor fusion; inertial sensors; barometric altimeters; motion tracking;
+Kalman filtering
+
+1. Introduction
+Sensor fusion methods combine data from disparate sources of information in a way that should
+give better performance than can be achieved when each source of information is used alone. The
+design of systems based on sensor fusion methods requires the availability of complementary sensors
+in order that the disadvantages of each sensor are overcome by the advantages of the others. An
+interesting application niche for sensor fusion methods—the one investigated in this paper—is motion
+tracking. Several sensor technologies are available for motion tracking, however none of them, taken
+alone, can be considered the absolute winner, especially when motion is to be tracked without
+restrictions in space and time [1], and cost and compliance issues tend to restrict the range of potential
+candidates for applications like human motion tracking in biomedicine and healthcare.
+Micro Electro-Mechanical System (MEMS) sensors are well suited for motion tracking in
+human-centric applications, such as pedestrian navigation and ambulatory human motion monitoring,
+in several regards (i.e., cost, form factor, power consumption) [2]. However their output signals are
+prone to noise and drift to the extent that good tracking of either orientation or position are difficult to
+achieve [3]: for instance, a tracking system relying on stand-alone measurements from MEMS inertial
+sensors suffers from integration drifts that may lead to positioning errors of 2 m after only 10 s of
+operation. It is customary to stabilize the position and orientation of MEMS inertial sensors using
+sensor fusion methods: GPS [4], ultra-wideband (UWB) radio [5], vision [6] are popular sensors that
+have been widely investigated for being integrated in inertial navigation systems. Barometric
+altimeters have also been proposed [5,7,8], in particular for stabilizing the position in the vertical
+direction (height tracking). Henceforth, the integration of a barometric altimeter with an Inertial
+Measurement Unit (IMU) embedding a tri-axial gyroscope and a tri-axial accelerometer is referred to
+as a baro-IMU. Good portability and ready market availability of low-cost sensor devices with
+proprietary sensor fusion software are appealing advantages of baro-IMU technology for several
+industrial, defense and research applications. Prospective applications can also be foreseen for human
+motion tracking, however custom sensor fusion software still needs to be developed.
+Barometric altimeters allow one to estimate the height of an object above a given reference level,
+e.g., the sea level from air pressure measurements—A popularly used term for this height is pressure
+altitude. In the context of human-centric applications, barometric altimeters found use within multi-sensor
+pedestrian navigation systems and activity monitors, for improving performance of dead-reckoning
+algorithms or classifiers of human motion patterns: e.g., they were used to detect the moving styles of
+going up/down the stairs or in an elevator [9]; to determine the correct floor of a user in a multi-storey
+building [10]; to detect stair ascent-descent in ambulatory monitors designed for estimating the energy
+expenditure incurred during activities of daily living, including stair-walking [11,12]. More recently, it
+was proposed that the measured pressure altitude might help improving accelerometry-based fall
+detection systems [13–15]. However, rapid changes in pressure that are uncorrelated with altitude can
+
+Sensors 2014, 14
+
+13326
+
+be generated, outdoors, by unpredictable atmospheric conditions, and, indoors, by opening/closing of
+windows or doors and by air conditioning systems [16]. The consequence is that barometric altimeters
+tend to be very noisy, and their accuracy is rather poor; when absolute altitude has to be estimated, the
+use of a reference barometric altimeter at a known and constant altitude has been proposed in the effort
+to obtain accurate measurements from a moving barometric altimeter (differential barometry) [16].
+Oftentimes, a single barometric altimeter can be used for tracking relative changes in height [8], to
+which we adhere in this paper. Barometric pressure technology allowing for altitude changes such as
+those occurring, e.g., in transitions between sitting and standing or during falls to be measured with
+sufficient accuracy may thus represent a valuable add-on to inertial sensor-based activity monitors [17].
+Two main approaches are pursued in the development of sensor fusion methods for motion
+tracking, namely tightly coupled and loosely coupled. The tightly coupled systems combine all sensor
+data into a single filter [5], while the loosely coupled systems revolve around different filtering
+modules for their operation [8]. In this paper we opted for the development of a loosely coupled sensor
+fusion method revolving around a two-stage cascade [8].
+First, a filtering module consisting of a quaternion-based Extended Kalman Filter (EKF) estimated
+the attitude of the body frame using inertial sensors [18]; the estimated inclination allowed to rotate the
+specific force measured by the tri-axial accelerometer from the body frame to the navigation frame, in
+preparation for gravity compensation. Second, the estimated vertical linear acceleration and the output
+provided by the barometric altimeter fed another filtering module—a complementary filter that
+estimated the vertical velocity and height in the navigation frame [19].
+Different means of pre-processing the measured pressure altitude were also implemented and tested,
+namely M-point moving average filters cascaded or not with a whitening filter, whose design was
+inspired by our studies on stochastic approaches to the problem of modeling the noise in barometric
+altimeters [20]. The whitening filter attempted to remove the serial correlation of the noise due to
+environment-dependent short-term pressure changes that may affect short-time tracking accuracy, i.e.,
+when the motions to be tracked last up to few minutes. One goal of this paper was to demonstrate the
+extent to which different methods of preprocessing noisy pressure altitude measurements can help to
+stabilize the integration of specific force measurements, leading to accurate estimates of vertical
+velocity and possibly height under conditions typical of human motions.
+The sensor fusion methods were applied to data from a wireless baro-IMU of our own design.
+Several tests were performed in different experimental settings, namely no-motion, free-fall motion,
+forced circular motion and squatting. When possible, reference data were generated and used for
+performance assessment. Accurate tracking of height and vertical velocity was demonstrated: velocity
+Root Mean Square Error (RMSE) was in the range 0.04–0.24 m/s; height RMSE was in the range
+5–68 cm, with statistically significant performance gains when the whitening filter was used to track
+relatively high-frequency vertical motions.
+2. Experimental Section
+2.1. Algorithm Development
+Three reference frames were used in the experimental setup of this paper (Figure 1):
+
+Sensors 2014, 14
+•
+
+•
+
+•
+
+13327
+
+Navigation frame {𝐧}—this was a North East Down (NED) frame, in which the Earth’s gravity
+was assumed known. The goal of the developed algorithm was to estimate the vertical velocity
+and height of the baro-IMU case in {𝐧}. Vertical meant locally aligned with the direction of the
+gravity acceleration at the origin of {𝐧}.
+Sensor frame {𝐬}—this was the reference frame in which the inertial sensors provided their
+measurements. The axes of the sensor frame were aligned with the sensitive axes of the tri-axial
+gyro and the tri-axial accelerometer.
+Body frame {𝐛}—this was the reference frame of the rigid body to which the baro-IMU case
+was fastened. {𝐛}was related to{𝐬}through a rigid transformation (rotation matrix and translation).
+Figure 1. The reference frames involved in the experimental set-up.
+
+The following notation was used to express the relation between two frames, for instance {𝐧} and
+{𝐛}: 𝐂 𝑛𝑏 and 𝐪
+�𝑛𝑏 = [(𝑞 𝑛𝑏 )𝑇 𝑞4𝑛𝑏 ]𝑇 denoted, respectively, the rotation matrix and the quaternion from
+{𝐛} to {𝐧} (𝐪𝑛𝑏 was the vector part and 𝑞4𝑛𝑏 was the scalar part of 𝐪
+�𝑛𝑏 ), 𝐛𝑛 was the position of the
+origin of {𝐛} 𝑂𝑏 relative to the origin of {𝐧} 𝑂𝑛 , resolved in {𝐧}. We assumed that, at the beginning
+of each experiment, 𝑂𝑏 ≡ 𝑂𝑛 . Moreover, the origin of {𝐬} 𝑂𝑠 was where the barometric altimeter
+is located within the IMU case, which is actually very close to where the tri-axial accelerometer
+is also located.
+In this paper, {𝐬} and {𝐛} were coincident, except when the sensor unit was submitted to conditions
+of forced circular motion: in the latter case the orientation matrix from {𝐬} to {𝐛} was the identity
+matrix (at first approximation), while 𝑂𝑠 was displaced relative to 𝑂𝑏 by the lever-arm vector 𝐋.
+Figure 2 shows the block diagram of the developed sensor fusion method. Two filtering modules
+were cascaded: a filtering module (the quaternion-based EKF) computed the attitude of {𝐛} relative to
+{𝐧} using the inertial sensors of the sensor unit. The linear acceleration was then estimated by rotating
+the specific force measured by the tri-axial accelerometer from {𝐛} to {𝐧} and adding the gravity to it
+(gravity cancellation). The vertical component of the linear acceleration and the output from the
+barometric altimeter were then fed into the complementary filter, where estimates of the vertical
+velocity and height were finally produced and resolved in {𝐧}.
+
+Sensors 2014, 14
+
+13328
+
+Figure 2. Block diagram of the sensor fusion method for estimating vertical velocity and
+height using baro-IMU sensor data.
+
+2.1.1. Quaternion-Based EKF for Attitude Estimation
+The filtering algorithm for estimating the attitude of {𝐛} relative to {𝐧} is a modified version of the
+quaternion-based EKF developed in [21]. In the present implementation, the state vector x includes the
+�𝑛𝑏 and the bias vector 𝑎𝐛 for self-compensation of accelerometer biases developing over
+quaternion 𝐪
+time, for the statistical description of which a first-order Gauss-Markov model is assumed [22].
+According to this model, 𝑎𝐛 is the realization of an exponentially time-correlated vector stochastic
+process whose components are statistically independent:
+𝑎 ̇
+
+𝐛 = −𝛼 𝑎𝐛 + 𝑎𝐯,
+
+(1)
+
+where α is the reciprocal of the correlation time constant 𝜏, and 𝑎𝐯 is white Gaussian noise, with zero
+mean and covariance matrix 𝑎𝚺 = 𝐈3×3 ∙ 𝑎𝜎 2 (𝐈𝑛×𝑛 is the 𝑛 × 𝑛 identity matrix).
+The quaternion kinematics equation can be written as follows:
+
+where:
+
+𝑑 𝑛𝑏
+1
+� = 𝑓(𝐪
+�𝑛𝑏 , 𝑡) = 𝛀 �𝛚𝑏𝑛𝑏 (𝑡)� 𝐪
+�𝑛𝑏
+𝐪
+𝑑𝑡
+2
+𝛀�𝛚𝑏𝑛𝑏 � = �
+
+−[𝛚𝑏𝑛𝑏 ×]
+−(𝛚𝑏𝑛𝑏 )𝑇
+
+𝛚𝑏𝑛𝑏
+�
+0
+
+𝛚𝑏𝑛𝑏 = [𝑝 𝑞 𝑟]𝑇 is the angular velocity of {b} relative to {n} resolved in {b}, and:
+0
+
+�𝛚𝑏𝑛𝑏 ×� = � 𝑟
+
+is the skew-symmetric cross-product matrix.
+
+−𝑞
+
+−𝑟
+0
+𝑝
+
+𝑞
+−𝑝�
+0
+
+(2)
+
+(3)
+
+(4)
+
+Sensors 2014, 14
+
+13329
+
+We consider the following discrete-time process of the quaternion kinematics of Equation (2):
+�𝑛𝑏
+�𝑛𝑏
+𝐪
+𝑘 = 𝚽𝑘−1 𝐪
+𝑘−1 = exp �
+
+𝑇𝑠
+�𝑛𝑏
+𝛀(𝛚𝑏𝑛𝑏 (𝑘 − 1))� 𝐪
+𝑘−1
+2
+
+(5)
+
+where 𝑇𝑠 is the sampling interval. Moreover, the discrete-time model of Equation (1) can be written
+as follows:
+𝑎
+
+𝐛𝑘 = 𝐈3×3 ∙ exp (−𝛼𝑇𝑠 ) 𝑎𝐛𝑘−1 + 𝑎𝐰𝑘−1
+
+(6)
+
+where the covariance matrix of the process noise 𝑎𝐰𝑘−1 is given by:
+𝑎
+
+𝐐 = 𝐈3×3 ∙
+
+The state transition equation is given by:
+𝑞
+
+1 − exp (−2𝛼𝑇𝑠 ) 𝑎 2
+𝜎
+2𝛼
+
+𝐰𝑘−1
+�𝑛𝑏
+�𝑛𝑏
+𝚽
+𝐪
+𝐪
+� 𝑎 𝑘 � = 𝐅𝑘−1 � 𝑎 𝑘−1 � + � 𝑎
+� = � 𝑘−1
+𝟎3×3
+𝐛𝑘
+𝐛𝑘−1
+𝐰𝑘−1
+
+(7)
+
+𝑞
+
+𝐰𝑘−1
+�𝑛𝑏
+𝟎3×3
+𝐪
+� � 𝑎 𝑘−1 � + � 𝑎
+�
+𝐈3×3 ∙ exp (−𝛼𝑇𝑠 )
+𝐛𝑘−1
+𝐰𝑘−1
+
+(8)
+
+The gyro measurement noise 𝐯𝑔 is white Gaussian noise with zero mean and covariance matrix
+𝑞
+𝚺𝑔 = 𝐈3×3 ∙ 𝜎𝑔2 . The process noise component 𝐰𝑘−1 describes how 𝐯𝑔 enters the state model of
+Equation (5) through the following quaternion-dependent linear transformation:
+𝑞
+
+�) is given by:
+and the matrix 𝚵(𝐪
+
+𝐰𝑘−1 = −
+
+𝑇𝑠
+�𝑛𝑏
+𝚵(𝐪
+𝑘−1 ) 𝐯𝑔 𝑘−1
+2
+
+(9)
+
+𝐈
+∙ 𝑞 + [𝐪 ×]
+�) = � 3×3 4 𝑇
+𝚵(𝐪
+�
+−𝐪
+
+(10)
+
+𝑞
+
+Since the process noise components 𝐰𝑘−1 and 𝑎𝐰𝑘−1 are assumed to be uncorrelated, the process
+
+noise covariance matrix 𝐐𝑘−1 has the following structure:
+
+where:
+
+𝑇𝑠 2
+2
+(𝐈
+∙
+trace(𝐌)
+−
+𝐌)
+∙
+𝜎
+�
+�
+𝑔
+𝐐𝑘−1 = � 4×4
+2
+𝟎3×3
+
+𝟎3×3 �
+𝑎
+
+𝐐
+
+�𝑛𝑏 (𝑘|𝑘 − 1)(𝐪
+�𝑛𝑏 (𝑘|𝑘 − 1))𝑇 + 𝐏 𝑞 (𝑘|𝑘 − 1).
+𝐌=𝐪
+
+(11)
+
+(12)
+
+�𝑛𝑏 (𝑘|𝑘 − 1) and 𝐏 𝑞 (𝑘|𝑘 − 1) denote, respectively, the expectation and the error state covariance
+𝐪
+matrix of the quaternion component of the state vector after propagation through Equation (8) [23]:
+𝐱(𝑘|𝑘 − 1) = 𝐅𝑘−1 𝐱(𝑘 − 1|𝑘 − 1)
+
+𝑇
+𝐏(𝑘|𝑘 − 1) = 𝐅𝑘−1 𝐏(𝑘 − 1|𝑘 − 1)𝐅𝑘−1
++ 𝐐𝑘−1
+
+(13)
+
+We remember that the propagated state is denoted as 𝐱(𝑘|𝑘 − 1), to mean that the accelerometer
+information available to the Kalman-based filter at time 𝑘𝑇𝑠 is still to be used for computing 𝐱(𝑘|𝑘),
+(update step).
+The specific force measured by the tri-axial accelerometer has the following expression (in the
+{𝐛}-frame) [3]:
+
+Sensors 2014, 14
+
+where:
+
+13330
+𝐟 𝑏 = 𝐂𝑏𝑛 �𝐛̈𝑛 − 𝐠 𝑛 � + �𝛚̇𝑏𝑛𝑏 ×�𝐬 𝑏 + �𝛚𝑏𝑛𝑏 ×��𝛚𝑏𝑛𝑏 ×�𝐬 𝑏 ,
+
+(14)
+
+𝐂𝑏𝑛 = 𝐈3×3 + 2𝑞4𝑛𝑏 [𝐪𝑛𝑏 ×] + 2[𝐪𝑛𝑏 ×]2 .
+
+(15)
+
+𝑎
+𝑎
+𝑏𝑛 �𝑛𝑏
+𝑛
+�𝑛𝑏
+𝐳𝑘 = ℎ(𝐪
+𝑘 , 𝐛𝑘 ) = 𝐂 �𝐪
+𝑘 �(−𝐠 ) + 𝐛𝑘 + 𝐯𝑓 𝑘 ,
+
+(16)
+
+�𝑛𝑏 (𝑘|𝑘 − 1)�(−𝐠 𝑛 ) − 𝑎𝐛(𝑘|𝑘 − 1).
+𝛎𝑘 = 𝐟𝑘𝑏 − 𝐂𝑏𝑛 �𝐪
+
+(17)
+
+In Equation (14) 𝐠 𝑛 is the gravity acceleration resolved in {𝐧}, �𝛚̇𝑏𝑛𝑏 ×�𝐬 𝑏 and�𝛚𝑏𝑛𝑏 ×��𝛚𝑏𝑛𝑏 ×�𝐬 𝑏
+
+are the tangential and centripetal acceleration, respectively. Equation (14) is valid under the
+assumption that the Coriolis acceleration is negligible.
+Accelerometer leveling is used to determine inclination, according to the following
+measurement equation:
+where the measurement noise 𝐯𝑓 𝑘 is white Gaussian noise with zero mean and covariance matrix
+
+𝐑 = 𝐈3×3 ∙ 𝜎𝑎2 . Accelerometer leveling is potentially undermined by the presence of non-gravitational
+components of acceleration, which include the linear acceleration 𝐛̈𝑛 and the components due to any
+rotational motion of the {𝐬}-frame relative to the {𝐧}-frame.
+Only for slow tracked motions, or when the lever-arm length is null, the specific force
+measurements can be safely used for state update in the EKF. Because of this, vector selection
+methods are usually employed to guard against the effects of fast motions. The method implemented in
+this paper looks at the innovation produced within the filter:
+
+Anytime components of the innovation vector exceed in magnitude a properly specified threshold
+value 𝜆𝑔 their rejection from the update step is obtained by setting the corresponding rows of the EKF
+
+measurement matrix 𝐇 to zero:
+
+𝜕𝐳
+𝜕𝐱
+= [−2𝑞4𝑛𝑏 [𝐠 𝑛 ×] − 2([𝐠 𝑛 ×][𝐪𝑛𝑏 ×] − 2[𝐪𝑛𝑏 ×][𝐠 𝑛 ×])
+�𝑛𝑏 , 𝑎𝐛) =
+𝐇(𝐪
+
+2[𝐪𝑛𝑏 ×]𝐠 𝑛
+
+𝐈3×3 ],
+
+(18)
+
+�𝑛𝑏 (𝑘|𝑘 − 1) for computation. Let 𝐇𝑎 be the matrix resulting from this
+where use is made of 𝐪
+procedure of row-wise cancellation.
+The Kalman gain is computed according to the following equation:
+𝐊 = 𝐏(𝑘|𝑘 − 1)𝐇𝑎𝑇 (𝐇𝑎 𝐏(𝑘|𝑘 − 1)𝐇𝑎𝑇 + 𝐑)−1 .
+
+(19)
+
+𝐱(𝑘|𝑘) = 𝐱(𝑘|𝑘 − 1) + 𝐊 𝛎𝑘
+𝐏(𝑘|𝑘) = (𝐈 − 𝐊𝐇𝑎 )𝐏(𝑘|𝑘 − 1).
+
+(20)
+
+The update of the state vector and error state covariance matrix is given by:
+
+In order for the quaternion component of the state vector to represent a valid rotation, it is standard
+practice to submit the updated quaternion to brute-force normalization in preparation for the next
+iteration [23]:
+�𝑛𝑏 (𝑘|𝑘) =
+𝐪
+
+�𝑛𝑏 (𝑘|𝑘)
+𝐪
+‖𝐪
+�𝑛𝑏 (𝑘|𝑘)‖
+
+(21)
+
+Sensors 2014, 14
+
+13331
+
+2.1.2. Complementary Filter for Vertical Velocity and Height Estimation
+To get the linear acceleration the specific force must be rotated from {𝐛} to {𝐧}:
+𝐱̈ 𝑎 𝑘 = 𝐂 𝑛𝑏 𝐟𝑘𝑏 + 𝐠 𝑛 ,
+
+(22)
+
+𝐂 𝑛𝑏 = 𝐈3×3 − 2𝑞4𝑛𝑏 [𝐪𝑛𝑏 ×] + 2[𝐪𝑛𝑏 ×]2 .
+
+(23)
+
+�𝑛𝑏 (𝑘|𝑘) is plugged into the expression of the rotation matrix:
+where the unit-norm quaternion 𝐪
+
+Upon rotation and gravity compensation, 𝐱̈ 𝑎 𝑘 can be submitted to single- and double-time
+integration to estimate velocity and position, respectively. This is the classical strap-down approach to
+inertial navigation [24]. Horizontal positioning, for which accurate heading estimation is also
+needed [25], is outside the scope of this paper. Here, only the vertical component 𝑥̈ 𝑎 𝑘 of the linear
+acceleration 𝐱̈ 𝑎 𝑘 is retained for further processing.
+The complementary filter can be implemented as suggested in [19]. The system’s state 𝑐𝐱 includes
+two variables, the vertical position and the vertical velocity:
+𝑥𝑎 𝑘
+1 𝑇𝑠 𝑐
+1 𝑇𝑠 /2
+𝑇 /2
+𝑐
+𝐱𝑘 = �𝑥̇ � = �
+� 𝐱𝑘−1 + �
+� 𝐊 𝑐 ∙ 𝑇𝑠 ∆𝑥𝑘−1 + � 𝑠 � ∆𝜐𝑘−1 ,
+(24)
+0 1
+𝑎𝑘
+0
+1
+1
+where ∆𝑥𝑘 = 𝑥𝑝 𝑘 − 𝑥𝑎 𝑘 and ∆𝜐𝑘 = 𝑇𝑠 𝑥̈ 𝑎 𝑘 . 𝑥𝑝 𝑘 is the pressure altitude measured by the barometric
+altimeter at time 𝑡𝑘 = 𝑘𝑇𝑠 and 𝑥̈ 𝑎 𝑘 is the vertical linear acceleration from Equation (22) at the same
+time instant.
+The gain 𝐊 𝑐 of the complementary filter is given by:
+𝐊𝑐 = − �
+
+�2𝜎𝑤 /𝜎𝑣
+�
+𝜎𝑤 /𝜎𝑣
+
+(25)
+
+where 𝜎𝑤 and 𝜎𝑣 are the standard deviations of the noise in the linear acceleration 𝑥̈ 𝑎 𝑘 and in the
+pressure altitude 𝑥𝑝 𝑘 , respectively. The complementary filter has low-pass characteristics with
+time constant:
+
+𝜎𝑣
+𝜎𝑤
+
+𝜏=�
+
+(26)
+
+The assumptions for the validity of the set of difference Equation (24) and optimality of the
+gain Equation (25) are the following: (a) the sampling interval is small enough that ∆𝑥𝑘 and 𝑥̈ 𝑎 𝑘 can
+be taken constant over the sampling interval; (b) the noise in the linear acceleration estimate and the
+noise in the pressure altitude measurement are mutually uncorrelated zero-mean white Gaussian noises.
+Short-time correlated fluctuations due to environment dependent pressure changes are present in the
+output signal from motionless barometric altimeters. It is this serial correlation that reduces the
+efficiency of, e.g., M-point moving average filters in smoothing noisy data from barometric altimeters.
+Recently, we have developed a stochastic method for barometric altimeter noise modeling using
+autoregressive moving average (ARMA) identification techniques [20]. The method was successful in
+identifying the short-time correlated noise component, whose effects are prominent for short-time
+tracking. Our idea was to use the learnt ARMA model parameters to design a whitening filter that
+would remove the serial correlation from the measured pressure altitude; for the experiments in this
+paper the whitening filter was designed with a DC gain 𝐴DC = 0.21, one pole at a frequency of about
+
+Sensors 2014, 14
+
+13332
+
+1 Hz and one zero approximately two octave down. Accordingly, a unity-gain constraint was enforced
+at 25 Hz. In the block named Conditioning in Figure 2, we applied either a 4-point moving average
+filter (Method A) or a 4-point moving average filter cascaded with the whitening filter (Method B),
+and tested their effect on the tracking accuracy.
+2.2. Sensor Hardware
+The experiments described in this paper were performed using a battery-powered wearable inertial
+measurement unit named Wearable Inertial Measurement Unit (WIMU), whose development is
+underway in our lab for applications in human motion ambulatory monitoring and assessment. The
+WIMU is endowed with a 32-bit ARM Cortex processor (NXP Semiconductors LPC1768) and a
+Bluetooth (BT) transceiver, which is currently implemented in a version for data communication with
+an Android-based smart-phone (Samsung Galaxy SII, GT-I9100). The WIMU sensors are a digital
+tri-axial gyro (InvenSense ITG-3200), a digital tri-axial accelerometer (Bosch BMA180), a digital
+tri-axial magnetic sensor (Honeywell HMC5843) and a digital pressure sensor (Bosch BMP085).
+Two wireless nodes, i.e., the smart-phone and a PC running MATLAB, communicated in a
+peer-to-peer mode within a Wireless Local Area Network (WLAN) via a User Datagram Protocol
+(UDP) connection, which allowed upload of 22-bytes sensor data packets at each sample time in the
+MATLAB workspace. The sensor fusion method was written and implemented in MATLAB to work
+in online conditions at the rate of 50 Hz. It is noted that, in order to perform gravity compensation, the
+specific force measured by the tri-axial accelerometer has to be projected along the vertical direction;
+heading estimation is not necessary to implement this procedure, hence our decision was not to use the
+magnetic sensor measurements available from the WIMU.
+The measurements by the BMP085 digital pressure sensor are noisy, including a significant amount
+of quantization noise due to a coarse resolution of about 1 Pa (corresponding to about 8.43 cm).
+The BMP085 was used in the ultra-low power mode (no oversampling was performed internally
+to the sensor). The ANSI C code by the sensor manufacturer was used to implement the
+compensation algorithm for pressure and temperature measurement using the integrated thermal
+sensor. The temperature was measured once per second, and this value was used for all pressure
+altitude measurements during the same period. The ANSI C code was ported to the ARM controller,
+together with the routine for calculating the altitude from calibrated pressure measurements using the
+barometric formula:
+𝑝 0.19
+ℎ = 44300 �1 − � � �
+𝑝𝑜
+
+(27)
+
+where ℎ is expressed in m and 𝑝𝑜 = 1013.25 hPa is the standard pressure at sea level.
+Absolute altitude information cannot be easily obtained by barometric altimeters. Equation (27) still
+applies in cases where the pressure and the temperature differ from those of the standard: the relative
+change in pressure and the actual temperature determine the change in altitude regardless of altitude. In
+all our experiments the relative pressure altitude was computed by taking the average value of the
+absolute pressure altitude during a rest period of 1 s before the motion started; the absolute pressure
+altitude signals during each experimental trial were then detrended by subtracting this constant value
+
+Sensors 2014, 14
+
+13333
+
+from them in the Conditioning block of Figure 2 (bias capture), yielding the height relative to the
+baro-IMU initial position.
+2.3. Experimental Validation
+The experimental validation of the proposed methods was based on submitting the baro-IMU to
+different motion conditions, namely: No-motion, free-fall motion, forced circular motion and squatting.
+The motion conditions were tested by repeating each trial N times (N = 10). When reference data were
+available (i.e., no-motion, free-fall motion, forced circular motion), Root Mean Square values of the
+difference (Error) between estimated (𝑦est ) and reference (𝑦ref ) time functions of the variables of
+interest (i.e., height and vertical velocity) were computed for each trial, motion condition and sensor
+fusion method. For instance, in the case of no-motion and forced circular motion conditions we have:
+𝑆
+
+1
+RMSE = � �(𝑦𝑒𝑠𝑡 (𝑘) − 𝑦𝑟𝑒𝑓 (𝑘))2
+𝑆
+
+(28)
+
+𝑘=1
+
+where S was the number of samples available in each trial (S = 9000). As for the free-fall motion
+condition, the reference time functions were based on a free-fall model and were compared to
+estimated time functions of the variables of interest during the fall, see Section 2.3.2 for details.
+The Bartlett test for equal variance was applied to RMSE values of each variable of interest
+produced by Method A and Method B in each motion condition (5% significance level). Finally, the
+paired-sample Wilcoxon signed rank test was applied to assess the RMSE performance between the
+two methods.
+2.3.1. No-Motion
+The experiment consisted of taking the baro-IMU at rest on top of a table while sensor data were
+acquired in a time interval lasting three minutes. The aim was to assess the effects of the short-time
+correlated pressure altitude fluctuations in the barometric altimeter output on the accuracy of height
+and vertical velocity estimation. Since the baro-IMU was motionless, the reference height and velocity
+to be entered in the RMSE calculation were null.
+2.3.2. Free-Fall Motion
+The free-fall motion consisted of letting the baro-IMU fall from a known height 𝐻 onto a soft
+mattress. The baro-IMU was initially at rest on a shelf at the height of 1.53 m above the mattress (rest
+phase I). The experimenter gently grasped the baro-IMU by hand and displaced it laterally trying to
+avoid any height change (rest phase II). The experimenter then released the baro-IMU, which fell
+down until the first impact on the mattress took place (free-fall phase I). No care was taken in order
+that the orientation of the sensor case was fixed during the fall. Eventually the baro-IMU rebounded to
+fall down again during the free-fall phase II. Finally, the baro-IMU went to rest on the mattress (rest
+phase III).
+
+Sensors 2014, 14
+
+13334
+
+During a free-fall motion the inertial frame vertical acceleration is equal to the gravity acceleration
+𝑔 (𝑔 = 9.81 m/s2). Under the simplifying assumption of zero air resistance, the vertical velocity and
+position are therefore given by:
+𝑣(𝑡) = 𝑔𝑡
+1
+�
+ℎ(𝑡) = 𝑔𝑡 2
+2
+
+for 𝑡 in the interval [0, 𝑇fall ], where the impact time 𝑇fall is:
+2𝐻
+𝑔
+
+(29)
+
+𝑇fall = �
+
+(30)
+
+𝐟 𝑏 = 𝐂𝑏𝑛 �𝐛̈𝑛 − 𝐠 𝑛 � = 𝐂𝑏𝑛 (𝐠 𝑛 − 𝐠 𝑛 ) = 𝟎.
+
+(31)
+
+Equation (29) was used to compute the reference time functions against which to compare the
+estimated height and vertical velocity during the free-fall phase prior to the first impact for RMSE
+calculation. Since the {𝐬} and {𝐛} frames were coincident in this case, the specific force in
+Equation (14) was zero during the free-fall phase:
+2.3.3. Forced Circular Motion
+
+The baro-IMU was submitted to a nominally uniform circular motion. For carrying this experiment
+we used a mechanical platform consisting of a DC motor (3863A024C Faulhaber) with its axis of
+rotation perpendicular to gravity. A plastic rod was hinged on the motor axis and the baro-IMU was
+fastened to the rod at a distance of 𝐿 = 30 cm from the motor axis, with the axes of {𝐬} parallel to the
+axes of {𝐛}. The DC motor was controlled using a motion controller (MCDC3006S Faulhaber) that
+was interfaced to a PC via a standard RS232 port, yielding measured angular displacements relative to
+a zero position with the axes of {𝐬} and {𝐛} aligned with the axes of {𝐧}. The origins of {𝐧} and {𝐛}
+were coincident at all times; the origin of {𝐬} was shifted along the plastic rod by the lever arm 𝐿.
+Angular displacements were measured using the built-in incremental encoder and were delivered
+to the PC at a rate of 250 Hz (𝑇 = 4 ms). A Graphical User Interface (GUI) was written in MS
+Visual Basic 6.0 to allow the experimenter to set the speed of rotation at a given value 𝜔𝑜 = 2𝜋𝑓𝑜 .
+Synchronization between baro-IMU sensor and encoder signals was achieved by looking for the time
+instant when the measured angular rate exceeded a threshold 𝜆 in both signals (𝜆 = 5 °/s); encoder data
+alignment was performed using cubic interpolation.
+In our experimental set-up we have:
+𝐬 𝑏 = [0 𝐿 0]𝑇
+� 𝐛̈𝑛 = 𝟎
+𝛚𝑏𝑛𝑏 = [𝜔𝑜 0 0]𝑇
+
+(32)
+
+In the case of a uniform circular motion, Equation (14) can be written:
+1
+𝐟 = �0
+0
+𝑏
+
+0
+cos𝜔𝑜 𝑡
+−sin𝜔𝑜 𝑡
+
+0
+0
+0
+0
+2
+sin𝜔𝑜 𝑡 � � 0 � + �−𝜔𝑜 𝐿� = �−𝑔 sin𝜔𝑜 𝑡 − 𝜔𝑜2 𝐿�
+−𝑔 cos𝜔𝑜 𝑡
+cos𝜔𝑜 𝑡 −𝑔
+0
+
+(33)
+
+Sensors 2014, 14
+
+13335
+
+The linear acceleration of the origin of {s} resolved in {n} is thus given by:
+1
+0
+𝐬̈ = �0 cos𝜔𝑜 𝑡
+0 sin𝜔𝑜 𝑡
+𝑛
+
+0
+0
+0
+0
+2
+2
+−sin𝜔𝑜 𝑡� �−𝑔 sin𝜔𝑜 𝑡 − 𝜔𝑜 𝐿� + � 0 � = �−𝜔𝑜 𝐿 cos𝜔𝑜 𝑡�
+−𝑔 cos𝜔𝑜 𝑡
+𝑔
+cos𝜔𝑜 𝑡
+−𝜔𝑜2 𝐿 sin𝜔𝑜 𝑡
+
+(34)
+
+yielding a harmonic motion law with displacement-time function:
+0
+𝐬 = �𝐿 cos𝜔𝑜 𝑡�
+𝐿 sin𝜔𝑜 𝑡
+𝑛
+
+(35)
+
+The baro-IMU height relative to its initial position was estimated using the interpolated angular
+displacements 𝜃𝑘 from the incremental encoder and the known lever-arm length L:
+ℎ𝑘 = 𝐿 sin𝜃𝑘
+
+(36)
+
+Finally, a central finite difference approximation was used to estimate the vertical velocity from the
+estimated height:
+ℎ̇𝑘 =
+
+ℎ𝑘+1 − ℎ𝑘−1
+2𝑇𝑠
+
+(37)
+
+The computed height and vertical velocity were used as reference data for RMSE calculation. 3-min
+long trials were performed once for five values of motion frequency 𝑓𝑜 .
+2.3.4. Squatting
+
+The final experiment was carried out as follows: a subject wore the baro-IMU at the upper trunk
+level. Standing still from the upright posture, he was asked to perform a squat before coming to the
+initial posture. In this case, reference height and vertical velocity for RMSE calculation were not
+available; for comparative purposes, the method of vertical linear velocity estimation using inertial
+sensors described in [26], henceforth called the reference method, was implemented.
+Briefly, the reference method works as follows: the tri-axial accelerometer is used during periods of
+quasi-static activity to provide the initial conditions of orientation for the rotational mapping of the
+gravity vector through strap-down integration of the angular velocity during periods of dynamic
+activity. Vertical linear acceleration during periods of dynamic activity is then integrated. Because of
+integration drift errors, initial and end conditions of each period of dynamic activity, in terms of both
+the orientation and the vertical linear velocity, may differ from one another. The orientation computed
+using the tri-axial accelerometer and the nominally null linear velocity during the periods of
+quasi-static activity are used for estimating and correcting the integration drift error [26].
+2.4. Implementation Details
+The initial orientation of {𝐛} relative to {𝐧} was computed by leaving the baro-IMU motionless for
+a rest period of about 1 s before starting to move. For instance, in the case of the squatting exercise, the
+subject was instructed to stand still before performing the squat. Initial conditions for the
+complementary filter were zero, either in height or velocity.
+
+Sensors 2014, 14
+
+13336
+
+Gyro bias was estimated by taking the average of the tri-axial gyro output during the rest period,
+which was then removed from the measured angular rates 𝑝, 𝑞, 𝑟 before running the sensor fusion
+method (bias capture) [18]. The in-field calibration of the tri-axial accelerometer was performed using
+the approach described in [27].
+After applying the sensor fusion method to the datasets available for each experimental condition
+described in this paper, the values of the EKF parameters that we found appropriate for its use are
+reported in Table 1.
+Table 1. Parameter tuning.
+Process Noise Model Parameters
+𝑎
+
+𝜎𝑔 , °/s
+
+1
+
+𝜎, m/s3 (×10-4)
+
+5
+
+𝜎𝑎 , m𝑔
+
+10
+
+𝜎𝑣 , cm (Method B)
+
+15
+
+−1
+
+𝛼, s
+
+0
+
+Measurement Noise Standard Deviations
+𝜎𝑤 , m𝑔
+
+15
+
+𝜎𝑣 , cm (Method A)
+
+30
+
+𝜆𝑔 , m𝑔
+
+150
+
+Threshold of the Vector Selection Method
+
+The different values of the barometric altimeter noise standard deviation 𝜎𝑣 depended on which
+filtering method was applied in the conditioning block (the smallest value was chosen in the case of
+Method B). Due to minute motions of the body where it was affixed, the apparent noisiness of the
+accelerometer was higher than in truly motionless conditions, hence the value of the standard deviation
+𝜎𝑎 was higher than values expected from bench calibration (for a typical MEMS accelerometer,
+1–2 m𝑔) [18]. The standard deviation 𝜎𝑤 of the noise in the linear acceleration measurements was
+further increased to account for additional errors that may arise in, e.g., the strap-down rotation.
+In the present implementation, 9 ms were needed (on average) to run each iteration step of the
+sensor fusion method (EKF cycle of prediction and update, followed by strap-down rotation and
+complementary filtering), which included about 6 ms consumed for uploading the 22-bytes sensor data
+packets available at each sample time to the MATLAB workspace.
+3. Results
+3.1. No-Motion
+The RMSE values of height and vertical velocity were computed using the 9000 samples collected
+during the 3 min-long trials for each sensor fusion method, Table 2. In this and the following tables,
+asterisks indicate statistical significances of the paired-sample Wilcoxon signed rank test as follows:
+* p < 0.05, ** p < 0.01. The Bartlett test rejected the null hypothesis of equal variance of the height
+
+Sensors 2014, 14
+
+13337
+
+RMSE values produced by the two methods at the significance level 5%. We can conclude that
+Method B outperformed Method A in this motion condition.
+Table 2. RMSE statistics expressed as mean value ± standard deviation (SD) across
+N = 10 trials.
+Height RMSE, m
+Method A
+Method B
+
+0.40 ± 0.15 ***
+0.08 ± 0.03 ***
+
+Vertical Velocity
+RMSE, m/s
+0.07 ± 0.01 ***
+0.02 ± 0.01 ***
+
+A representative plot the height and vertical velocity time functions estimated with either method A
+or method B is given in Figure 3. It is noted that the vertical velocity estimates were drift-free, in a
+situation where the vertical linear acceleration estimates were substantially zero mean (the mean of
+vertical linear acceleration was about 2 m𝑔, with standard deviation SD of about 2 m𝑔). The bias 𝐵
+affecting the estimates of vertical velocity was about 0.01 m/s, on average, for either Method A or
+Method B).
+Figure 3. No-motion. (a) Height time functions are plotted in blue (Method A) and red
+(Method B); (b) Vertical velocity time functions are plotted in blue (Method A) and red
+(Method B). The reference height and vertical velocity are zero.
+
+Sensors 2014, 14
+
+13338
+
+3.2. Free-Fall Motion
+For RMSE calculation the experimental time functions were compared with Equation (20) over the
+time interval [𝑇start 𝑇end ]; by our definition, 𝑇start was the time instant when the norm of the specific
+force came to be equal to 𝑔/2 during the free-fall phase I, while 𝑇end was computed by adding the
+expression of Equation (30) to 𝑇start . The results of the RMSE analysis are reported in Table 3. In this
+motion condition the Bartlett test and the paired-sample Wilcoxon signed rank test failed to reach
+statistical significance, thus implying that the two methods were nearly equivalent.
+Table 3. RMSE statistics expressed as mean value ± standard deviation (SD) across
+N = 10 trials.
+Height RMSE, m
+Method A
+Method B
+
+0.07 ± 0.03
+0.05 ± 0.02
+
+Vertical velocity
+RMSE, m/s
+0.14 ± 0.05
+0.13 ± 0.04
+
+A representative plot of height and vertical velocity estimated using either Method A or Method B
+is given in Figure 4. As shown in Figure 4, the rebound of the WIMU took place during the
+acceleration signal hump observed at the end of each free-fall phase; at the end of the free-fall phase I
+the vertical velocity would change sign, before reverting again to the linear trend observed during the
+succeeding free-fall phase II. However, the velocity state at the output of the complementary filter does
+not change sign during the impact-related acceleration signal humps. The reason for the estimation
+errors growing so large after the first impact is unclear: sensor saturation was not observed in our
+experiments, maybe limitations in sensor bandwidth play a role. The height and vertical velocity
+estimated by the complementary filter after impacts were thus heavily biased downwards, and it took
+several seconds before the complementary filter recovered during the rest phase III. The recovery
+period after the first impact was about 8 s, consistent with the value of the time constant of the
+complementary filter—see Equation (26). Actually, the behavior of the vertical velocity during the first
+rebound phase was very similar to the one showed in [28], where the tracking exercise came
+apparently to end just after the first impact.
+It is also noted that, in contrast with Method A, Method B was unable to accurately track the height
+during rest phase III. The reason is that the whitening filter may distort the motion-related low-frequency
+components in the signal produced by the barometric altimeter. In particular, the whitening filter
+adopted in this work has a DC gain of 0.21, which explains why the height was underestimated by
+Method B during rest phase III.
+
+Sensors 2014, 14
+
+13339
+
+Figure 4. Free-fall motion. (a) Height estimated by Method A (blue) and Method B
+(red) with superimposed the raw pressure altitude (black); (b) Vertical velocity
+estimated by Method A (blue) and Method B (red) with superimposed the vertical linear
+acceleration (black).
+(a)
+
+(b)
+
+3.3. Forced Circular Motion
+The RMSE values of height and vertical velocity were computed using the 9000 samples collected
+during the 3 min-long trials for each value of motion frequency 𝑓𝑜 and sensor fusion method, Table 4.
+The Bartlett test reached statistical significance for height RMSE, while the paired-sample Wilcoxon
+signed rank test failed to reach statistical significance only for the height RMSE when 𝑓𝑜 = 1.25 Hz, in
+which case both methods performed poorly.
+Figure 5 shows representative plots of the estimated height and vertical velocity when the motion
+frequency is 0.5 Hz. As in the no-motion condition, it is noted that Method B outperformed Method A.
+
+Sensors 2014, 14
+
+13340
+
+Table 4. RMSE statistics expressed as mean value ± standard deviation (SD) across
+N = 10 trials.
+fo = 0.25 Hz
+
+fo = 0.5 Hz
+
+fo = 0.75 Hz
+
+fo = 1 Hz
+
+fo = 1.25 Hz
+
+Height RMSE, m
+
+0.38 ± 0.17 **
+
+0.44 ± 0.24 **
+
+0.54 ± 0.29 **
+
+0.48 ± 0.22 ***
+
+0.68 ± 0.19 ***
+
+Vertical velocity RSME, m/s
+
+0.08 ± 0.01 **
+
+0.08 ± 0.01 **
+
+0.11 ± 0.02 **
+
+0.13 ± 0.02 ***
+
+0.24 ± 0.06 ***
+
+Height RMSE, m
+
+0.15 ± 0.02 **
+
+0.10 ± 0.03 **
+
+0.09 ± 0.03 **
+
+0.10 ± 0.02 ***
+
+0.68 ± 0.07 ***
+
+Vertical velocity RMSE, m/s
+
+0.06 ± 0.01 **
+
+0.05 ± 0.01 **
+
+0.08 ± 0.02 **
+
+0.11 ± 0.02 ***
+
+0.22 ± 0.06 ***
+
+Method A
+
+Method B
+
+Figure 5. Forced circular motion. Estimated (blue) and reference (red) height and vertical
+velocity time functions, with superimposed the difference error between estimated and
+reference time functions (black). Data are displayed in the time interval from 20 to 80 s for
+improved graphical readability.
+
+Method A
+
+Method B
+
+3.4. Squatting
+Figure 6a shows a representative plot of the trunk vertical displacement estimated by either Method A
+or Method B with superimposed the raw data from the barometric altimeter. The trunk vertical velocity
+estimated by Method A, Method B and the reference method are plotted in Figure 6b for the same
+squat exercise as in Figure 6a. The maximum trunk vertical displacement from standing still to squat
+
+Sensors 2014, 14
+
+13341
+
+position was measured by hand (approximately, 𝐻 = 0.60 m); the estimates produced by the sensor
+fusion methods were 0.86 ± 0.39 m (Method A) and 0.50 ± 0.11 (Method B). According to the results
+of the Bartlett test, the maximum trunk vertical displacement estimated by Method A had a higher
+variance compared with Method B. Moreover, a one-sample Wilcoxon signed rank test that the
+estimated maximum trunk vertical displacement comes from a distribution with median H failed at the
+5% significance level for Method B. It is noted that, in contrast with Method A, Method B tended to
+underestimate the maximum trunk vertical displacement. The RMSE of the trunk vertical velocity was
+0.14 ± 0.10 for both methods.
+Figure 6. Squatting motion. (a) Trunk vertical displacement estimated by Method A (blue)
+and Method B (red) with superimposed the raw pressure altitude (black); (b) Trunk vertical
+velocity estimated by Method A (blue) and Method B (red), with superimposed the
+estimate by the reference method (black).
+(a)
+
+(b)
+
+4. Discussion
+One interesting point of discussion common to all experimental conditions in this paper is that the
+estimate of the vertical velocity is virtually drift-free. This is not obviously the case when vertical
+linear acceleration is submitted to single-time integration.
+Suppose that the accelerometer works without scale or offset errors; additionally, let us assume that
+the strap-down rotation is implemented without errors. Even under these ideal conditions, integration
+
+Sensors 2014, 14
+
+13342
+
+of noisy acceleration data is not without errors: the variance of random-walk integration errors grows
+linearly with integration time and is proportional to the accelerometer measurement noise variance [3].
+On the other hand, any uncompensated scale and offset errors give rise to linearly drifting velocity
+estimates; moreover, orientation errors are known to affect the accuracy of gravity cancellation to a
+great extent [29,30]. An interesting discussion concerning the effects of sensor and orientation errors
+on the accuracy of strap-down integration is reported in [31]. There, handling the nonlinearity involved
+in implementing the strap-down rotation is referred to as the umbrella problem. The probability density
+function of the rotated acceleration is not indeed a Gaussian shape, but looks like an umbrella, yielding
+a downward bias in the vertical linear acceleration estimate. Higher-order EKFs, namely the
+second-order EKFs investigated in [5] for their capability of modeling the nonlinearity involved in the
+strap-down rotation, were not considered for implementation at the current stage of our research. The
+bias error cannot be negligible when large orientation errors occur or when large horizontal
+accelerations are present.
+Orientation errors can grow large especially when fast motions are to be tracked. In particular, this
+difficulty may be due to limitations in the sampling rates, or the low reliability of accelerometer
+leveling. The free-fall and forced circular motion experiments were particularly challenging as for the
+reliability of leveling. In the case of free-fall motion, all specific force measurements were rejected by
+the vector selection method during the free-fall phases, when the specific force was nominally zero.
+Hence quaternion propagation and update were based only on the gyro measurements. In the case of
+forced circular motion, and especially with increases in the values of the frequency of motion, the
+proposed vector selection method rejected a progressively large proportion of specific force
+measurements along the Y-axis, which were dominated by the centripetal acceleration components; the
+specific force measurements along the other sensitivity axes passed the test and were thus used
+for leveling.
+It is noted that the height and vertical velocity RMSE values tended to increase for the highest
+values of the forced circular motion frequency, Table 4, where we observed a slight downward bias of
+few mg’s in the vertical linear acceleration – likely, an instance of the umbrella problem. Empirically,
+the accelerometer-bias compensation was instrumental in reducing the downward bias of the vertical
+linear acceleration, in line with the notion that adding a limited amount of pseudo-noise to components
+of the state vector may stabilize Kalman-based filters [32]. In our previous work, we demonstrated that
+gyro-bias compensation can help increasing the accuracy of orientation estimation according to the
+same principle of pseudo-noise injection, even when gyro-bias is not given time to change
+significantly, namely when the duration of the tracked motion does not exceed, say, few minutes [18].
+Although it should be feasible and technically straightforward, we decided not to implement the
+gyro-bias compensation at the present stage of system development.
+An attractive feature of the complementary filter was that, thanks to the contribution of the
+barometric altimeter, drifts in the estimated variables of interest could be virtually eliminated, in the
+vertical velocity domain at least. The height and vertical velocity tracking accuracy of the
+complementary filter increased when the whitening filter was applied in the conditioning block in the
+case of no-motion and forced circular motion. This is due to the whitening filter acting to make the
+barometric altimeter noise white, a requisite for which the complementary filter is optimal [19].
+However, the whitening filter introduced linear distortions of amplitude and phase on the pressure
+
+Sensors 2014, 14
+
+13343
+
+altitude changes that were due to sensor motion. These distortions can explain the fact that, in contrast
+with Method A, Method B was unable to track accurately the height during the rest phase III in
+Figure 4a, and underestimated the maximum trunk vertical displacement in Figure 6a.
+One problem with using the whitening filter is related to where the unity-gain constraint is
+enforced. Since the correlated noise component occupies the low-frequency part of the spectrum, the
+whitening filter presents a typically high-pass frequency response, which tends to amplify uncorrelated
+noise unless the unity-gain constraint is moved from DC to higher frequencies. On the one hand, based
+on the ARMA model identification results, the −3 dB corner frequency of the whitening filter is
+approximately 1 Hz, which makes distortionless tracking quite difficult for slow human motions in the
+vertical direction. On the other hand, the amplifying effect on the uncorrelated noise component due to
+a unity-gain constraint enforced at DC would require, approximately, a 25-fold increase in the length
+of the M-point moving average filter for achieving the same Signal-to-Noise ratio, which is
+unacceptable due to the amplitude and phase distortions introduced in the filtering chain. We conclude
+that, because of their limited measurement capabilities, barometric altimeters are critical components
+for doing accurate relative height tracking of human-like motions. It is believed that technological
+advancements may improve the picture in the near future [17]. For now, we have demonstrated that,
+although the whitening filter does not allow improving the tracking accuracy in free-fall and squatting
+conditions, the vertical velocity is estimated fairly well with both methods, even in comparison with
+the reference method, which is quoted to have a vertical velocity RMSE in the order of 0.1 m/s against
+ground-truth data from an optoelectronic motion analysis system [26]. Usually, when dealing with
+inertial sensing applications, dedrifting algorithms such as those implemented in the reference method
+are applied to estimates of velocity that are produced by time-integration of rotated acceleration data to
+improve accuracy [23,26]. By their nature, these methods work off-line, while the proposed sensor
+fusion method works on-line. It is worth noting that on-line tracking is mandatory for some possible
+applications of baro-inertial technology, such as pre-impact fall detection, which may require on-line
+estimation of vertical velocity to design efficient detectors [23,26].
+In conclusion, we have verified that Method B outperformed Method A during no-motion and
+forced circular motion tests. The height and vertical velocity RMSE values and the variance of the
+height RMSE values were lower when the whitening filter was used, compared with when it was not
+inserted in the conditioning block. Method B and Method A were nearly equivalent during free-fall
+and squat tests, although the use of the whitening filter might lead to precise, yet inaccurate height
+estimates for low-frequency motions.
+We now compare the proposed sensor fusion methods with other methods reported in the literature
+on baro-IMUs that are customized for human motion tracking [5,8]. We are not aware of any research
+report using commercial baro-IMUs with proprietary sensor fusion software applied to human
+motion tracking.
+Robust and accurate tracking was claimed in [5] using an integrated UWB baro-IMU sensor unit. In
+addition to the quaternion from the body frame to the navigation frame, height and vertical velocity of
+the tracked body and the bias of the inertial sensors, the sensor fusion method incorporated the
+barometric altimeter baseline in the state vector; this was done for better tracking the barometric
+altimeter measurement fluctuations as the atmospheric conditions change. In addition to the baro-IMU
+measurements, UWB-based range measurements were considered in either an EKF or a second-order
+
+Sensors 2014, 14
+
+13344
+
+EKF. One experimental scenario concerned normal height tracking in human motion: the motion to be
+tracked lasted about 85 s and consisted of vertical oscillations with peak-to-peak values of about two
+meters and frequencies of about 0.6 s. Given the presence of the UWB in the integrated solution, the
+results discussed in [5] cannot be directly compared to ours; however, it is instructive that the height
+RMSE went from 16 cm to 29 cm in the EKF solution during periods of UWB outage lasting ten
+seconds; the height RMSE went from 13 cm to 16 cm when the second-order EKF was tested using
+data from the same experiment as above.
+In [8] two experiments focusing on application to indoors height tracking of human-like motions
+were designed to test and analyze the performance of a sensor fusion method employing a two-state
+Kalman filter that combined strap-down rotated vertical acceleration and barometric altimeter output.
+A stationary reference barometer was also deployed in the effort to improve the accuracy of height
+estimates. A market-available baro-IMU with proprietary EKF-based orientation algorithms was used
+for strap-down rotation; the two-state Kalman filter, to which the complementary filter implemented in
+this paper is identical when the gain 𝐊 𝑐 is chosen as in Equation (25) [19], was set with a process noise
+standard deviation 𝜎𝑤 = 0.8 m𝑔 and a measurement noise standard deviation 𝜎𝑣 = 1 m (process and
+measurement noises were modeled as mutually uncorrelated additive white Gaussian noises). The
+sensor fusion methods of this paper failed with this tuning to produce accurate estimates of height; the
+reason, we believe, was that the reliability of the linear acceleration measurements was overestimated,
+while underrating the reliability of the barometric altimeter measurements. In the first experiment
+described in [8], which consisted of an 8-s up-and-down motion of approximately ±0.5 m followed by
+a 10-s up-down motion of approximately ±1 m, the height error was bounded by ±0.2 m after
+correcting for the drift in barometric altimeter reading by differential barometry. The second
+experiment, in which the integrated sensor was strapped to the chest, showed “good accuracy and
+stability while walking up and down a staircase” for about one minute. Common to [5,8] is that no data
+were reported as for the accuracy of vertical velocity and one replication of each experiment was taken
+without statistical tests.
+5. Conclusions
+A loosely coupled filtering approach was developed in this paper for estimating the vertical velocity
+and height of a rigid body using baro-IMU sensor data. The sensor fusion method was based on a
+quaternion-based EKF for attitude estimation and strap-down rotation of the sensed specific force
+using inertial sensors, followed by a complementary filter fed with the estimated vertical linear
+acceleration and the output from the barometric altimeter. For validation purposes the sensor fusion
+method was implemented in MATLAB using our WIMU system, consisting of a baro-IMU paired via
+Bluetooth to a smart-phone, which was wirelessly interfaced to a PC running MATLAB via WiFi.
+Successful validation was achieved in different experimental conditions, which included no-motion,
+free-fall motion, forced circular motion and squatting. The porting of the sensor fusion method to the
+target WIMU controller is currently underway.
+
+Sensors 2014, 14
+
+13345
+
+Acknowledgments
+This work was partly supported by the Italian Ministry of Education and Research (MIUR) through
+the relevant interest national project (PRIN) “A quantitative and multi-factorial approach for
+estimating and preventing the risk of falls in the elderly people”, and by the EC funded project
+I-DONT-FALL “Integrated prevention and Detection sOlutioNs Tailored to the population and Risk
+Factors associated with FALLs” (CIP-ICT-PSP-2011-5-297225). The authors are grateful to Andrea
+Mannini and Gabriele Ligorio for useful discussions.
+Author Contributions
+A.M.S. developed the algorithms, performed data analysis and wrote the paper; V.G. was
+responsible for the WIMU hardware and firmware development, and conducted the experiments.
+Conflicts of Interest
+The authors declare no conflict of interest.
+References
+1.
+2.
+3.
+
+4.
+5.
+
+6.
+
+7.
+
+8.
+
+Welch, G.F.; Foxlin, E. Motion tracking: No silver bullet, but a respectable arsenal. IEEE
+Comput. Graph. Appl. 2002, 22, 24–38.
+Barbour, N.; Schmidt, G. Inertial sensor technology trends. IEEE Sens. J. 2001, 1, 332–339.
+Sabatini, A.M. Inertial sensing in biomechanics: A Survey of Computational Techniques Bridging
+Motion Analysis and Personal Navigation. In Computational Intelligence for Movement Sciences,
+Neural Networks and Other Emerging Techniques; Begg, R., Palaniswami, M., Eds.; IGP Idea
+Group Publishing: Hershey, PA, USA, 2006; pp. 70–100.
+Wendel, J.; Meister, O.; Schlaile, C.; Trommer, G.F. An integrated GPS/MEMS-IMU navigation
+system for an autonomous helicopter. Aerospace Sci. Technol. 2006, 10, 527–533.
+Zhang, M.; Vydhyanathan, A.; Young, A.; Luinge, H.J. Robust height tracking by proper
+accounting of nonlinearities in an integrated UWB/MEMS-based-IMU/baro system. In
+Proceedings of the 2012 IEEE/ION Position Location and Navigation Symposium (PLANS),
+Myrtle Beach, SC, USA, 23–26 April 2012; pp. 414–421.
+Ligorio, G.; Sabatini, A.M. Extended Kalman filter-based methods for pose estimation using
+visual, magnetic and inertial sensors: Comparative analysis and performance evaluation. Sensors
+2013, 13, 1919–1941.
+Weimann, F.; Abwerzger, G.; Hofmann-Wellenhof, B. A pedestrian navigation system for
+urban and indoor environments. In Proceedings of the 20th International Technical Meeting
+Satellite Division of the Institute of Navigation, Fort Worth, TX, USA, 25–28 September 2007;
+pp. 1380–1389.
+Tanigawa, M.; Luinge, H.J.; Schipper, L.J.; Slycke, P.J. Drift-Free dynamic height sensor using
+MEMS IMU aided by MEMS pressure sensor. In Proceedings of the 5th Workshop on Positioning,
+Navigation and Communication, Hannover, Germany, 27–28 March 2008; pp. 191–196.
+
+Sensors 2014, 14
+9.
+
+13346
+
+Sagawa, K.; Ishihara, T.; Ina, A.; Inooka, H. Classification of human moving patterns using air
+pressure and acceleration. In Proceedings of the 24th Annual Conference Industrial Electronics,
+Aachen, Germany, 31 August–4 September 1998; pp. 1214–1219.
+10. Retscher, G. Altitude Determination of a Pedestrian in a Multi-Storey Building. In Location
+Based Services and Telecartography; Gartner, G., Cartwright, W.E., Peterson, M.P., Eds.;
+Springer-Verlag: New York, NY, USA, 2007; pp. 119–130.
+11. Ohtaki, Y.; Susumago, M.; Suzuki, A.; Sagawa, K.; Nagatomi, R.; Inooka, H. Automatic
+classification of ambulatory movements and evaluation of energy consumptions utilizing
+accelerometers and a barometer. Microsyst. Technol. 2005, 11, 1034–1040.
+12. Voleno, M.; Redmond, S.J.; Cerutti, S.; Lovell, N.H. Energy expenditure estimation using triaxial
+accelerometry and barometric pressure measurement. In Proceedings of the IEEE Engineering in
+Medical & Biology Society 32th Annual Conference, Buenos Aires, Argentina, 31 August–4
+September 2010; pp. 5185–5188.
+13. Bianchi, F.; Redmond, S.J.; Narayanan, M.R.; Cerutti, S.; Lowell, N.H. Barometric pressure
+sensors and triaxial accelerometry-based falls event detection. IEEE Trans. Neural Syst. Rehab.
+Eng. 2010, 18, 619–627.
+14. Salomon, R.; Lüder, M.; Gerald, B. iFall-A new embedded system for the detection of unexpected
+falls. In Proceedings of the 8th IEEE International Conferences on Pervasive Computing and
+Communications Workshops, Mannheim, Germany, 29 March–2 April 2010; pp. 286–291.
+15. Tolkiehn, M.; Atallah, L.; Lo, B.; Yang, A.Y. Direction sensitive fall detection using a triaxial
+accelerometer and a barometric pressure sensor. In Proceedings of the IEEE Engineering in
+Medicine & Biology Society 33th Annual Conferences, Boston, MA, USA, 30 August–3 September
+2011; pp. 369–372.
+16. Parviainen, J.; Kantola, J.; Collin, J. Differential barometry in personal navigation. In Proceedings
+of the IEEE/ION Position, Location and Navigation Symposium, Monterey, CA, USA, 5–8 May
+2008; pp. 148–152.
+17. Massé, F.; Bourke, A.K.; Chardonnens, J.; Paraschiv-Ionescu, A.; Aminian, K. Suitability of
+commercial barometric pressure sensors to distinguish sitting and standing activities for wearable
+monitoring. Med. Eng. Phys. 2014, in press.
+18. Sabatini, A.M. Estimating three-dimensional orientation of human body parts by inertial/magnetic
+sensing. Sensors 2011, 11, 1489–1525.
+19. Higgins, W.T. A comparison of complementary and Kalman filtering. IEEE Trans. Aero. Electr.
+Syst. 1975, 11, 321–325.
+20. Sabatini, A.M.; Genovese, V. A stochastic approach to noise modeling in barometric altimeters.
+Sensors 2013, 13, 15692–15707.
+21. Sabatini, A.M. Quaternion-Based extended Kalman filter for determining orientation by inertial
+and magnetic sensing. IEEE Trans. Biomed. Eng. 2006, 53, 1346–1356.
+22. El-Diasty, M.; Pagiatakis, S. A rigorous temperature-dependent stochastic modelling and testing
+for MEMS-based inertial sensor errors. Sensors 2009, 9, 8473–8489.
+23. Choukroun, D.; Bar-Itzhack, I.Y.; Oshman, Y. Novel quaternion Kalman filter. IEEE Trans.
+Aerosp. Electron. Syst. 2006, 41, 174–190.
+
+Sensors 2014, 14
+
+13347
+
+24. Weston, J.L.; Titterton, D.H. Modern inertial navigation technology and its application. Electron.
+Commun. Eng. J. 2000, 12, 49–64.
+25. Foxlin, E. Pedestrian tracking with shoe-mounted inertial sensors. IEEE Comput. Graph. Appl.
+2005, 25, 38–46.
+26. Bourke, A.K.; O’Donovan, K.J.; O’Laighin, G. The identification of vertical velocity profiles
+using an inertial sensor to investigate pre-impact detection of falls. Med. Eng. Phys. 2008, 30,
+937–946.
+27. Lötters, J.C.; Schipper, J.; Veltink, P.H.; Olthuis, W.; Bergveld, P. Procedure for in-use
+calibration of triaxial accelerometers in medical applications. Sens. Actuators A Phys. 1998, 68,
+221–228.
+28. Wu, G.; Xue, S. Portable preimpact fall detector with inertial sensors. IEEE Trans. Neural Syst.
+Rehab. Eng. 2008, 16, 178–183.
+29. Skog, I.; Händel, P.; Nilsson, J.O.; Rantakokko, J. Zero-Velocity detection—An algorithm
+evaluation. IEEE Trans. Biomed. Eng. 2010, 57, 2657–2666.
+30. Giansanti, D.; Macellari, V.; Maccioni, G.; Cappozzo, A. Is it feasible to reconstruct body
+segment 3-D position and orientation using accelerometric data? IEEE Trans. Biomed. Eng. 2003,
+50, 476–483.
+31. Zhang, M.; Hol, J.D.; Slot, L.; Luinge, H. Second order nonlinear uncertainty modeling in
+strapdown integration using MEMS IMUs. In Proceedings of the 14th International Conferences
+Information Fusion, Chicago, IL, USA, 5–8 July 2011; pp. 1–7.
+32. Maybeck, P.S. Stochastic Models, Estimation and Control; Academic Press: New York, NY,
+USA, 1982.
+© 2014 by the authors; licensee MDPI, Basel, Switzerland. This article is an open access article
+distributed under the terms and conditions of the Creative Commons Attribution license
+(http://creativecommons.org/licenses/by/3.0/).
+
+

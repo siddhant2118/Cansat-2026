@@ -8,7 +8,7 @@
 
 | Priority | Feature | Status | Notes |
 |----------|---------|--------|-------|
-| Medium | **Kalman Filter** | ⬜ | Fuse pressure altitude + IMU accel for smoother estimates |
+| Medium | **Kalman Filter** | ✅ | Implemented Research-Grade (Sabatini/Wu) 3-State EKF |
 | Low | **TinyGPS++** | ⬜ | Replace custom GPS parser with proven library |
 | Low | **Magnetometer heading** | ⬜ | Use MPU9250 magnetometer for heading when stationary |
 
@@ -18,8 +18,8 @@
 
 | Priority | Feature | Status | Notes |
 |----------|---------|--------|-------|
-| High | **PID Tuning** | ⬜ | Tune Kp, Ki, Kd with actual hardware testing |
-| Medium | **Trajectory prediction** | ⬜ | Use prev coordinate + current + target for better path |
+| High | **PID Tuning** | 🔄 | Python sim created: `test/winch_pid_sim.py` |
+| Medium | **Trajectory prediction** | ✅ | 1s lookahead implemented in guidance.cpp |
 | Low | **LQR Controller** | ⬜ | Alternative to PID if more precision needed |
 | Low | **Wind compensation** | ⬜ | Estimate wind from GPS drift vs heading |
 
@@ -29,7 +29,7 @@
 
 | Priority | Feature | Status | Notes |
 |----------|---------|--------|-------|
-| Medium | **IntervalTimer** | ⬜ | Replace polling with hardware interrupts for precise timing |
+| Medium | **IntervalTimer** | ✅ | Hardware timers in scheduler.h/cpp |
 | Low | **DMA for sensors** | ⬜ | Non-blocking sensor reads |
 
 ---

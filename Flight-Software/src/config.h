@@ -72,6 +72,14 @@
 // ============================================================================
 // FLIGHT PARAMETERS
 // ============================================================================
+// OpenRocket Simulation Values (cansat_2025.ork):
+//   Apogee: 503m, Max velocity: 107m/s, Max accel: 66.9m/s²
+//   Rocket mass: 4305g with motor
+//
+// Competition: Monterey, VA (June 4-7, 2026), Elevation: ~760m
+
+// Expected peak altitude from OpenRocket
+#define EXPECTED_APOGEE_M       503.0f  // From OpenRocket simulation
 
 // Altitude thresholds (meters)
 #define ALT_LAUNCH_THRESHOLD    20.0f   // Detect launch
@@ -90,8 +98,22 @@
 #define APOGEE_CONFIRM_SAMPLES  3       // Consecutive samples to confirm apogee
 #define LANDED_CONFIRM_MS       5000    // Time with low movement to confirm landing
 
+// Descent parameters (for calculations)
+#define PAYLOAD_MASS_KG         0.5735f // 573.5g (Payload + Wing)
+#define CONTAINER_MASS_KG       0.4265f // 426.5g
+#define TOTAL_MASS_KG           1.0000f // 1000g Max (Requirement)
+#define TARGET_DESCENT_RATE     5.0f    // m/s (Requirement: 5 ± 3 m/s)
+
 // ============================================================================
 // SERVO CONFIGURATION
+// ============================================================================
+// Servo Setup (Team LeoNUS 2026):
+//   - Winch Servo 1: Para-glider left brake (continuous rotation + AS5600 encoder)
+//   - Winch Servo 2: Para-glider right brake (continuous rotation + AS5600 encoder)
+//   - CanSat Release Servo: MG996R - separates payload from container at 80% peak
+//   - Egg Release Servo: MG996R - releases egg at 2m AGL
+//
+// PWM Range for MG996R: 1000-2000μs, center at 1500μs
 // ============================================================================
 #define SERVO_PWM_MIN       1000  // Minimum pulse width (μs)
 #define SERVO_PWM_MAX       2000  // Maximum pulse width (μs)
@@ -105,6 +127,53 @@
 
 // Actuation timing
 #define ACTUATION_DELAY_MS  100   // Delay between consecutive actuations
+
+// ============================================================================
+// WINCH SERVO CONFIGURATION (Para-glider control)
+// ============================================================================
+// Servo Model: SPT5525LV-360 (Continuous Rotation)
+// - Neutral point: 1500 μs
+// - Pulse width: 500 - 2500 μs
+// - Operating speed: 55 RPM @ 6.0V
+// - Deadband: 4 μs
+// - Weight: 63g
+//
+// Winch servos controlled by position feedback from AS5600 magnetic encoders
+// via I2C multiplexer (TCA9548A)
+
+// Winch servo pins (PWM output)
+#define PIN_WINCH_LEFT      4     // Left brake winch servo
+#define PIN_WINCH_RIGHT     5     // Right brake winch servo
+
+// AS5600 encoder I2C configuration
+#define AS5600_I2C_ADDRESS  0x36  // Fixed address for AS5600
+#define TCA9548A_ADDRESS    0x70  // I2C multiplexer address
+#define WINCH_LEFT_MUX_CH   0     // Mux channel for left encoder
+#define WINCH_RIGHT_MUX_CH  1     // Mux channel for right encoder
+
+// Winch position limits (in degrees)
+#define WINCH_MIN_ANGLE     0.0f    // Fully released
+#define WINCH_MAX_ANGLE     180.0f  // Fully pulled (max brake)
+#define WINCH_CENTER_ANGLE  90.0f   // Neutral position
+
+// Winch drum specs (for line speed calculation)
+// Line speed = π × diameter × RPM / 60
+// At 55 RPM, 10mm drum: ~28.8 mm/s line speed
+#define WINCH_DRUM_DIA_MM   10.0f   // Effective diameter with line buildup
+#define WINCH_LINE_SPEED    0.029f  // Approx m/s at full speed
+
+// Winch PID control parameters
+#define WINCH_KP            2.0f    // Proportional gain
+#define WINCH_KI            0.0f    // Integral gain (start at 0)
+#define WINCH_KD            0.1f    // Derivative gain
+#define WINCH_DEADBAND      2.0f    // Degrees - stop when within this range
+
+// SPT5525LV-360 Continuous rotation servo PWM (μs)
+#define WINCH_STOP          1500    // Stop (neutral)
+#define WINCH_CW_FULL       2500    // Full clockwise
+#define WINCH_CCW_FULL      500     // Full counter-clockwise
+#define WINCH_PWM_MIN       500     // Min pulse width
+#define WINCH_PWM_MAX       2500    // Max pulse width
 
 // ============================================================================
 // COMMUNICATION CONFIGURATION
@@ -147,9 +216,11 @@
 // GUIDANCE CONFIGURATION
 // ============================================================================
 
-// Target coordinates (set before flight)
-#define TARGET_LATITUDE     35.0f   // degrees N (placeholder)
-#define TARGET_LONGITUDE    -106.0f // degrees W (placeholder)
+// Target coordinates (Competition: Monterey, VA)
+// Drop Zone: 38°22'33"N 79°36'28"W (Decimal: 38.37583, -79.60778)
+// Elevation: ~817.5 m
+#define TARGET_LATITUDE     38.37583f   // degrees N
+#define TARGET_LONGITUDE    -79.60778f  // degrees W
 
 // Steering gains (PID)
 #define GUIDANCE_KP         0.8f    // Proportional gain
@@ -158,6 +229,12 @@
 #define GUIDANCE_INTEGRAL_MAX 30.0f // Anti-windup limit (degrees*seconds)
 #define GUIDANCE_MAX_TURN   30.0f   // Maximum steering angle (degrees)
 #define GUIDANCE_RATE_LIMIT 15.0f   // Rate limit (deg/s)
+
+// ============================================================================
+// ADVANCED CONTROL (Uncomment to enable)
+// ============================================================================
+// #define USE_ADAPTIVE_PID    // Enable Gain Scheduling based on error magnitude
+// #define USE_KALMAN_FILTER   // Enable Altitude fusion (Baro + Accel)
 
 // ============================================================================
 // DEBUG FLAGS

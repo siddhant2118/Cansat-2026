@@ -16,8 +16,14 @@
 #include "../config.h"
 #include "../types.h"
 
+#ifdef USE_ADAPTIVE_PID
+#include "adaptive_pid.h"
+#endif
+
+// Forward declaration or struct definition
+#ifndef USE_ADAPTIVE_PID
 /**
- * @brief PID Controller structure
+ * @brief PID Controller structure (Fixed Gains)
  */
 struct PIDController {
     float kp;               // Proportional gain
@@ -57,6 +63,7 @@ struct PIDController {
         return output;
     }
 };
+#endif
 
 /**
  * @brief Paraglider Guidance Controller
@@ -121,6 +128,17 @@ public:
      */
     void setGains(float kp, float ki, float kd);
     
+    /**
+     * @brief Enable/disable trajectory prediction
+     * When enabled, uses predicted future position instead of current position
+     */
+    void setTrajectoryPrediction(bool enabled, float lookaheadSeconds = 1.0f);
+    
+    /**
+     * @brief Get predicted intercept point
+     */
+    void getPredictedPosition(float& lat, float& lon);
+    
 private:
     float _targetLat;
     float _targetLon;
@@ -134,8 +152,12 @@ private:
     
     bool _active;
     
-    // PID controller for heading
+    // PID controller for heading (Swappable)
+    #ifdef USE_ADAPTIVE_PID
+    AdaptivePID _headingPID;
+    #else
     PIDController _headingPID;
+    #endif
     
     // Timing
     uint32_t _lastUpdateTime;
@@ -147,6 +169,15 @@ private:
     float calculateBearing(float lat1, float lon1, float lat2, float lon2);
     float calculateDistance(float lat1, float lon1, float lat2, float lon2);
     float normalizeAngle(float angle);
+    
+    // Trajectory prediction
+    bool _trajectoryEnabled;
+    float _lookaheadTime;       // Seconds to look ahead
+    float _prevLat, _prevLon;   // Previous GPS position
+    float _predLat, _predLon;   // Predicted future position
+    bool _hasPrevPosition;
+    
+    void updateTrajectoryPrediction(const GPSData& gps, float dt);
 };
 
 #endif // GUIDANCE_H

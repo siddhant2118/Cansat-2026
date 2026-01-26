@@ -43,6 +43,15 @@ GuidanceController::GuidanceController()
     _headingPID.kd = GUIDANCE_KD;
     _headingPID.integralMax = GUIDANCE_INTEGRAL_MAX;
     _headingPID.reset();
+    
+    // Trajectory prediction defaults
+    _trajectoryEnabled = true;  // Enable by default
+    _lookaheadTime = 1.0f;      // 1 second lookahead
+    _prevLat = 0;
+    _prevLon = 0;
+    _predLat = 0;
+    _predLon = 0;
+    _hasPrevPosition = false;
 }
 
 void GuidanceController::begin() {
@@ -235,4 +244,71 @@ float GuidanceController::normalizeAngle(float angle) {
     while (angle > 180.0f) angle -= 360.0f;
     while (angle < -180.0f) angle += 360.0f;
     return angle;
+}
+
+// ============================================================================
+// TRAJECTORY PREDICTION
+// ============================================================================
+
+void GuidanceController::setTrajectoryPrediction(bool enabled, float lookaheadSeconds) {
+    _trajectoryEnabled = enabled;
+    _lookaheadTime = constrain(lookaheadSeconds, 0.1f, 5.0f);
+    
+    #if DEBUG_SERIAL
+    Serial.print(F("Trajectory prediction: "));
+    Serial.print(enabled ? F("ON") : F("OFF"));
+    Serial.print(F(", lookahead: "));
+    Serial.print(_lookaheadTime);
+    Serial.println(F("s"));
+    #endif
+}
+
+void GuidanceController::getPredictedPosition(float& lat, float& lon) {
+    if (_trajectoryEnabled && _hasPrevPosition) {
+        lat = _predLat;
+        lon = _predLon;
+    } else {
+        lat = 0;
+        lon = 0;
+    }
+}
+
+void GuidanceController::updateTrajectoryPrediction(const GPSData& gps, float dt) {
+    if (!_hasPrevPosition) {
+        // First position - just store it
+        _prevLat = gps.latitude;
+        _prevLon = gps.longitude;
+        _hasPrevPosition = true;
+        _predLat = gps.latitude;
+        _predLon = gps.longitude;
+        return;
+    }
+    
+    // Calculate velocity in degrees/second
+    float velLat = (gps.latitude - _prevLat) / dt;
+    float velLon = (gps.longitude - _prevLon) / dt;
+    
+    // Sanity check - reject unreasonable velocities (GPS glitch)
+    // Max ~100 km/h in degrees/s: ~0.001 deg/s
+    float maxVel = 0.002f;
+    if (abs(velLat) > maxVel || abs(velLon) > maxVel) {
+        // Probably GPS glitch - don't update prediction
+        _predLat = gps.latitude;
+        _predLon = gps.longitude;
+    } else {
+        // Predict future position
+        _predLat = gps.latitude + velLat * _lookaheadTime;
+        _predLon = gps.longitude + velLon * _lookaheadTime;
+    }
+    
+    // Store for next iteration
+    _prevLat = gps.latitude;
+    _prevLon = gps.longitude;
+    
+    #if DEBUG_SENSORS
+    Serial.print(F("Pred pos: "));
+    Serial.print(_predLat, 6);
+    Serial.print(F(", "));
+    Serial.println(_predLon, 6);
+    #endif
 }

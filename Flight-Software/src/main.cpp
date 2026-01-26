@@ -24,6 +24,16 @@
 #include "sim/sim_mode.h"
 #include "guidance/guidance.h"
 #include "health/health.h"
+#include "scheduler.h"
+
+// Advanced features (optional)
+#ifdef USE_ADAPTIVE_PID
+#include "guidance/adaptive_pid.h"
+#endif
+
+#ifdef USE_KALMAN_FILTER
+#include "sensors/kalman_filter.h"
+#endif
 
 // ============================================================================
 // GLOBAL STATE
@@ -37,15 +47,21 @@ CommandHandler commands;
 SDLogger sdLogger;
 PersistenceManager persistence;
 ServoController servos;
+
+// Advanced instances
+#ifdef USE_ADAPTIVE_PID
+AdaptivePID adaptivePID;
+#endif
+
+#ifdef USE_KALMAN_FILTER
+AltitudeKalman kalman;
+#endif
 SimulationMode simMode;
 GuidanceController guidance;
 HealthMonitor health;
 
-// Scheduler timing
-static uint32_t lastSensorTick = 0;
-static uint32_t lastGuidanceTick = 0;
-static uint32_t lastTelemetryTick = 0;
-static uint32_t lastHealthTick = 0;
+// Note: Timing now handled by hardware IntervalTimer (see scheduler.h)
+// The tick flags are set by ISR and cleared after processing
 
 // Global state
 static bool telemetryEnabled = false;
@@ -127,12 +143,8 @@ void setup() {
     // Initialize health monitor
     health.begin();
     
-    // Record startup
-    uint32_t now = millis();
-    lastSensorTick = now;
-    lastGuidanceTick = now;
-    lastTelemetryTick = now;
-    lastHealthTick = now;
+    // Initialize hardware timers for guaranteed timing
+    schedulerInit();
     
     #if DEBUG_SERIAL
     Serial.println(F("Initialization complete"));
@@ -155,10 +167,10 @@ void loop() {
     }
     
     // -------------------------------------------------------------------------
-    // 10 Hz: SENSOR SAMPLING + FSM UPDATE (100ms)
+    // 10 Hz: SENSOR SAMPLING + FSM UPDATE (hardware timer)
     // -------------------------------------------------------------------------
-    if (now - lastSensorTick >= TICK_SENSOR_MS) {
-        lastSensorTick = now;
+    if (tickSensor) {
+        tickSensor = false;
         
         // Update sensors
         sensors.update();
@@ -177,10 +189,10 @@ void loop() {
     }
     
     // -------------------------------------------------------------------------
-    // 20 Hz: GUIDANCE LOOP (50ms)
+    // 20 Hz: GUIDANCE LOOP (hardware timer)
     // -------------------------------------------------------------------------
-    if (now - lastGuidanceTick >= TICK_GUIDANCE_MS) {
-        lastGuidanceTick = now;
+    if (tickGuidance) {
+        tickGuidance = false;
         
         FlightState state = fsm.getState();
         const SensorData& data = sensors.getData();
@@ -203,10 +215,10 @@ void loop() {
     }
     
     // -------------------------------------------------------------------------
-    // 1 Hz: TELEMETRY + LOGGING (1000ms)
+    // 1 Hz: TELEMETRY + LOGGING (hardware timer - CRITICAL)
     // -------------------------------------------------------------------------
-    if (now - lastTelemetryTick >= TICK_TELEMETRY_MS) {
-        lastTelemetryTick = now;
+    if (tickTelemetry) {
+        tickTelemetry = false;
         
         if (telemetryEnabled) {
             // Build and transmit telemetry frame
@@ -228,10 +240,10 @@ void loop() {
     }
     
     // -------------------------------------------------------------------------
-    // 2 Hz: HEALTH CHECK (500ms)
+    // 2 Hz: HEALTH CHECK (hardware timer)
     // -------------------------------------------------------------------------
-    if (now - lastHealthTick >= TICK_HEALTH_MS) {
-        lastHealthTick = now;
+    if (tickHealth) {
+        tickHealth = false;
         
         health.update(sensors.getData());
         

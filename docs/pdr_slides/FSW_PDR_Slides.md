@@ -147,9 +147,13 @@
   - **At 80% peak altitude:** PROBE_RELEASE (para-glider deploys)
   - **At 2m AGL:** PAYLOAD_RELEASE (egg released)
   - LANDED
-- **Para-glider guidance at 20 Hz (PID control):**
-  - Calculate bearing to target, heading error
-  - PID controller: P (current error), I (wind drift), D (damping)
+- **Descent Estimation & Control:**
+  - **Primary Architecture:** Research-Grade 3-State EKF (Sabatini/Wu)
+    - Fuses Baro + Accel using physics-based Q-matrix (Sabatini 2014)
+    - Provides robust Vertical Velocity for Apogee & Landing
+  - **Guidance Control (Backup Options):**
+    - **Backup 1:** Standard PID (Fixed Gains)
+    - **Backup 2:** Adaptive Gain Scheduling (Variable Kp)
   - Differential servo control for steering
 - Recover operations upon power reset via EEPROM:
   - Packet count, flight state, mode, calibration data, CMD_ECHO
@@ -323,7 +327,7 @@
 |-------|-------------------|
 | LAUNCH_PAD | Default at power-on |
 | ASCENT | Altitude > 20m AND velocity > 5 m/s |
-| APOGEE | Vertical velocity ≤ 0 (3 consecutive samples) |
+| APOGEE | Vertical velocity ≤ 0 (3 consecutive samples) - **Robust to Motor Variance (+/-10%)** |
 | DESCENT | After APOGEE |
 | PROBE_RELEASE | Altitude ≤ **80% peak altitude** |
 | PAYLOAD_RELEASE | Altitude ≤ **2m AGL** |

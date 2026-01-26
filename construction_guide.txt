@@ -1,0 +1,259 @@
+Cansat Design and Construction Guide
+
+Table of Contents
+1.0 Introduction
+1.1 Rocket Flight Dynamics and Variabilities
+2.0 Parachutes and Attachments
+2.1 Parachutes
+2.2 Attachment Points
+3.0 Mounting Electronics
+4.0 Materials Selection
+5.0 Electrical Connections
+6.0 Battery Mounts
+7.0 Antennas
+
+3
+3
+4
+4
+4
+5
+6
+6
+7
+7
+
+7.1 Payload Antennas
+7.2 Ground Station Antennas
+8.0 3D Printed Parts
+
+7
+7
+8
+
+1.0 Introduction
+This guide is to help you design and build a CanSat that will have a much better chance of surviving
+launch, deployment, and landing. This guide is based on years of kit designing and prototyping.
+
+​
+
+1.1 Rocket Flight Dynamics and Variabilities
+
+No rocket flight is identical. Each flight will vary, sometimes substantially. There are many variables
+involved. Starting with the rocket motor, manufacturers can have up to +/-10% propellant performance
+variation. This means the peak altitude can vary due to variation in propellant performance variation.
+The next variable is the delay grain used to deploy the rocket parachute and CanSat. It too can vary in
+its timing. Deployment can vary up to a second early or late. The black powder used to pressurize the
+booster section of the rocket to deploy the parachute can vary in quantity which will vary the amount of
+force exerted on the payload section. The manufacturer includes a small amount of black powder. An
+additional amount is added to make sure the payload section properly separates from the booster
+section since the manufacturer's amount is not enough.
+Then there is the weather. Humidity has some effect. Winds have a greater effect. The center of gravity
+of the CanSat also has an effect. These variations will affect the flight path of the rocket. With a low
+center of gravity of the CanSat, the rocket will tend to fly more vertical even with moderate winds.
+With higher upper winds, the rocket will tend to turn into the winds reducing peak altitude and adding
+more horizontal velocity. Some flights may lose a lot of altitude.
+
+2.0 Parachutes and Attachments
+When the CanSat is deployed from the rocket, it is possible the rocket is still moving quickly. The
+container parachute will open up almost immediately after the CanSat exits the payload section and
+open up. There will be a significant jerk force on the parachute and the attachment point.
+
+​
+
+2.1 Parachutes
+
+It is best to purchase a commercial parachute. It is simpler and a time saver. There are multiple sources
+and multiple designs. There are designs specific for high velocity deployments. If you must make your
+own parachute, use a strong cord and have the cord sewed into the parachute material. High
+performance parachutes secure the cord across the parachute. A major weak point is the attachment
+point of the cord and parachute material. Do not use fish line.
+There are numerous types of parachutes, the simplest is a the flat circular sheet, then there is spherical
+parachute. The problem with these parachutes is they fill with air and will tilt to the side to spill out air.
+It is highly recommended to get a parachute with a spill hole. An x-form parachute will also work.
+Also include a one to 2 foot length of cord between the parachute and CanSat. The length of cord will
+dampen any swaying from the parachute to the CanSat. I use kelvar cord and a knot that tightens when
+pulling the cord. There are numerous websites and a book on knots.
+For parachute material, use ripstop nylon. Do not use Quest or Estes plastic parachutes.
+
+​
+
+2.2 Attachment Points
+
+The best way to attach is an eye-bolt. The bent wire eye-bolt with an 8-32 threading is sufficient. A
+forged eye-bolt is better but most likely overkill. You want the attachment point to be very strong. Use
+a fender washer on both sides of the eye-bolt when securing with a nut. The fender washer distributes
+the load over a larger portion of the material. This configuration is used in the construction of the
+rockets. Where the eye-bolt attaches to the CanSat structure is important. Make sure the material is
+strong enough. 1/8 inch thick micro-plywood is strong. Some printed plastics may not have the
+strength. Testing needs to be performed to verify the strength.
+If using a bent wire eye-bolt, make sure the cord cannot slip through any gap.
+
+3.0 Mounting Electronics
+Electronics need to be properly mounted. If designing circuit boards, include mounting holes. 0.125
+inch or 3 mm mounting holes are sufficient to support 4-40 threaded hardware or M2.56 metric
+hardware. It is best to have four mounting holes in the corners of the board. When designing the board,
+make sure there is sufficient room around the mounting hole for the screw head or nut. ¼ inch or 6.4
+mm diameter clearance should suffice. You don't want the screw head or nut short against a trace or
+come in contact with a component. I usually have a larger clearance to allow space for a nut driver to
+be used.
+There are two mounting methods that work. One uses double
+sided foam carpet tape. This is used only on small circuit
+boards that do not have mounting holes such as sensor
+boards. Larger circuit boards should use hard screw
+mounting.
+The second mounting method is with screws. 4-40 hardware
+or M2.56 hardware is sufficient for circuit boards. Circuit
+boards need some bottom clearance. Standoffs are used to
+provide the clearance. For the most part, nuts can be used as
+standoffs. This saves some cost and is very effective.
+Pictured to the right is a metal plate with ½ inch long 4-40
+screws inserted from the bottom and secured with kep-nuts.
+Kep-nuts are nuts with a toothed washer attached. The
+toothed washer keeps the nut from loosening.
+The picture below shows a circuit board installed on the screws
+and secured in place with standoffs. The Standoffs will be used
+to mount another circuit board on top.
+Standoffs can be used to stack same sized circuit boards. The
+circuit boards are secured between the standoffs. Use standoffs
+with a male and female end. 4-40 standoffs with a 3/16”
+diameter is sufficient. Pictured are aluminum standoffs which
+are very light and low cost.
+Be careful with aluminum
+standoffs and other
+aluminum hardware. The
+thread side can be broken
+off if tightened too much.
+An added measure of keeping the nuts and screws from loosening
+is to add a small amount of epoxy or hot glue on the thread side or
+across the screw head and part of the structure or circuit board. The
+epoxy or hot glue keeps the nut or screw from loosening during
+flight. I have never really needed to do that for one Launch. Over
+multiple launches, it is possible for the nuts and screws to loosen.
+
+4.0 Materials Selection
+Be careful with selecting materials. Two issues are materials strength and
+temperature. The CanSat can be in the rocket for a while in the sun and get
+warmed. Temperatures in the upper 30C have been recorded. If printing
+components with a 3D printer or using plastics, test in a thermal chamber
+for warping and softening.
+
+5.0 Electrical Connections
+When interconnecting boards, do not solder wires between boards. Wires
+will break at the solder joints. If you must solder wires directly, secure the
+wire at the solder joint with hot glue or epoxy. You want to make it so the
+wire at the solder joint cannot move.
+Use stranded wires. Solid core wires are not designed for movement and
+will break over time due to bending and vibrations. If the solid wire is
+nicked when stripping the insulation, the nick will become the weak point
+and eventually break.
+Connectors are preferable for connecting signals between boards. Low cost
+connectors such as the Molex stackable housing connector with a .1 inch
+grid spacing. The one shown to the right is part number 0050579003. They
+mate with .1 inch headers. They do require a crimp tool and this series uses a
+relatively low cost hand crimp tool. 0640160201.
+There are connector kits for different series types of connectors such as
+PH2.0 or MX connectors. Kits will include both mating connectors with
+different pin counts and pre-crimped wires.
+You can also use board-to-board connectors. This allows for stacking boards
+together. Make sure to use standoffs or spacers so the board-to-board
+connectors are not stressed when boards are mounted to each other. With
+these connectors, you want to pick connectors that have a large tolerance to
+handle movement relative to each other without disconnecting.
+When making connections, a small amount of hot glue, epoxy, or electrical
+grade RTV can be used to make sure the connector does not come loose. A
+small dot of RTV or glue that spans across the connector and base of the
+header is all that is needed. There are some connectors that include an
+interlock.
+If using connectors that require soldering wires to pins or sockets, some
+sort of strain relief will be required. You want to avoid the wire at the
+solder joint from moving since that will start causing fractures in the
+solder and eventually break the wire.
+Another important tool is the wire stripper. It is preferable to use a wire
+stripper with preset wire gauge notches instead of the cheap one that uses a
+set screw to set the wire size. A good wire stripper will remove the wire
+insulation without nicking the metal. When a wire gets a nick, that
+becomes the weak point and will break after being bent or flexed for a while. Good wire cutters do not
+
+have to cost a lot.
+
+6.0 Battery Mounts
+During flight, the payload will experience vibrations and shocks. Batteries are relatively heavy and can
+easily move. if using Alkaline 9V batteries, use Duracell. The internal cells in the 9V battery are
+welded. Other brands use some type of spring. Vibrations and shock can cause disconnects.
+If using circular cells, do not use battery holders with springs for contacts. Again, the vibrations and
+shock forces can cause disconnects. Use prefabricated battery packs or get batteries with tabs and make
+soldered connections. Secure any wires with tape to keep the wires from moving. Cover all connections
+with tape or other insulating materials to avoid shorts.
+Secure the battery to the structure well and in all dimensions. Zip ties work well as a low cost method.
+They can be installed across the battery in both dimensions. Small 9V batteries can have one zip tie and
+then tape wrapped around to keep the battery from sliding out from the zip tie.
+
+7.0 Antennas
+Antenna selection and operation can make or break a radio link. By the time a data packet reaches your
+ground station from the cansat, it will be several million times weaker than when it was transmitted.
+Your antennas will give the radio signal power a boost, and so to maintain a continuous radio link with
+your payload, careful attention must be given to the antennas used on ground and in flight.
+
+​
+
+7.1 Payload Antennas
+
+Radio waves are bent and bounced by metal: this makes antennas work, but can also cause them to fail!
+In general, it is best practice to keep antennas as far as possible from metallic materials which are not
+part of the antenna itself. The size of your cansat payload makes this a challenge, but best results will
+still be seen when the antenna has a clear “path” to the air, meaning there is little to no metal between
+the antenna and the sky. Plastic, fabric, and other non-metallic materials will not affect the antenna’s
+operation. It is recommended that you do not bury your antenna deep inside your payload where it will
+be surrounded by metal components.
+Whip or wire antennas are commonly used for the XBEE transmitter module. These are reliable
+radiators, but they can be less effective when bent at the wrong angle. They typically work best when
+oriented perpendicular to the radio module. Experiment with the best orientation for your antenna, but
+be careful not to break it: it is just a flexible wire after all.
+
+​
+
+7.2 Ground Station Antennas
+
+Your ground station antenna will do most of the work needed to maintain a radio link with your
+payload since it will likely have the highest gain in your communication system. There are countless
+possible antennas to choose from, each with their own pros and cons.
+It is important to think about
+the trade between high gain
+and how fast you need to
+steer the antenna to keep up
+with your payload.
+Antennas, such as yagis,
+with very high gain (a
+narrow main beam) must be
+
+moved quickly to keep the payload within the main beam. Likewise, it
+may be possible to steer an antenna more slowly if it has low gain (a wider
+main beam), like a monopole or dipole, but the received signal will be
+weaker. Teams in the past have achieved good communication links using
+both directive and omni-directional antennas.
+Polarization of your antenna can play a role in communication
+maintenance as well. Best practice is to have the payload and ground
+station antennas be of similar polarization. When tumbling, the
+polarization of the payload antenna may change rapidly and could disrupt
+your radio link. To compensate for this, you might consider exploring
+dual-polarized or circular-polarized ground station antennas.
+Examples include dual-polarized yagi antennas, helical monopoles,
+and parabolic, or dish, antennas with circular feeds.
+
+8.0 3D Printed Parts
+3D printing allows for complex shaped parts to be easily fabricated.
+Be careful of how the parts are used. In some directions, the parts may
+not be strong enough for shock forces. The parts do well with
+compressive forces but tension forces can cause layer separation or other failures. For parachute
+attachment points, it is highly recommended to use a solid material such as plywood, polycarbonate,
+fiberglass or similar solid material. 3D printed parts may not stay intact with a shock force pulling at
+one point. It is recommended that solid materials be used where high forces are expected and 3D
+printed parts be attached to the solid materials and used where low forces will be experienced.
+Select light colors for any 3D printed parts that may be exposed to the sun for any duration to avoid
+weakening of any printed structures. White and bright orange are good colors that have been tested.
+Some filament materials tested include PLA+ from Inland, PETG and ABS. Be careful with printing
+large sized components. All plastic filaments do shrink some and it varies based on manufacturer as
+each has their own filament formula.
+
+
