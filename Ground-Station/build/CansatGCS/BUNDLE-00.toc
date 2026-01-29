@@ -1,0 +1,3 @@
+([('CansatGCS',
+   '/Users/manya/Desktop/Cansat-2026/Ground-Station/dist/CansatGCS',
+   'EXECUTABLE')],)

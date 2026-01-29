@@ -1,0 +1,21 @@
+# CanSat 2026 Ground Control Station Configuration
+
+# Mission Settings
+TEAM_ID: 1000
+# TEAM_ID: 2026 # Example
+
+# Serial Communication Settings
+SERIAL_BAUD: 9600      # Default XBee baud rate
+TERMINATOR: "\r"       # STRICT REQUIREMENT: Carriage Return only
+RECONNECT_RETRIES: 5
+READ_TIMEOUT: 1.0
+
+# UI Settings
+UI_FONT_SIZE: 14       # Minimum font size in points (G15 compliance)
+PLOT_WINDOW_S: 30      # Time window for real-time plots
+THEME: "Light"         # High Contrast Light Theme
+
+# Simulation Settings
+SIM_PRESSURE_FILE: "pressure.csv"
+SIM_PRESSURE_UNIT: "Pa" # Pascal (Strict Requirement)
+SIM_SEND_RATE_HZ: 1
